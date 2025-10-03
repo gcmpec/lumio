@@ -1,8 +1,8 @@
 ---
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { buttonVariants } from '@/components/ui/button';
-import '@/styles/globals.css';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { buttonVariants } from "@/components/ui/button";
+import "@/styles/globals.css";
 ---
 
 <!doctype html>
@@ -12,318 +12,135 @@ import '@/styles/globals.css';
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    <title>Lumio | Registo de Atividades</title>
+    <title>Lumio | Autenticação</title>
   </head>
   <body class="bg-background text-foreground">
     <div class="min-h-screen flex items-center justify-center px-6 py-12">
-      <div class="w-full max-w-2xl space-y-10 rounded-xl border bg-card p-8 shadow">
+      <div class="w-full max-w-4xl space-y-10 rounded-2xl border bg-card p-10 shadow-xl">
         <header class="space-y-2 text-center">
-          <h1 class="text-3xl font-bold">Damos-te as boas-vindas ao Lumio!</h1>
+          <h1 class="text-3xl font-bold">Bem-vindo ao Lumio</h1>
           <p class="text-sm text-muted-foreground">
-            Guarda os teus dados e comeca a registar tempo nas tuas atividades.
+            Inicia sessao com o teu e-mail e password ou cria uma nova conta para comecar a registar atividades.
           </p>
         </header>
 
-        <section class="space-y-4">
-          <h2 class="text-xl font-semibold">Os teus dados</h2>
-          <form id="user-form" class="space-y-4">
-            <div class="grid gap-4 md:grid-cols-2">
+        <div class="grid gap-8 lg:grid-cols-2">
+          <section class="space-y-6">
+            <div>
+              <h2 class="text-xl font-semibold">Iniciar sessao</h2>
+              <p class="text-sm text-muted-foreground">Acede ao teu espaço com o e-mail e password.</p>
+            </div>
+            <form id="login-form" class="space-y-4">
               <div class="space-y-2">
-                <Label htmlFor="user-name">Nome</Label>
-                <Input id="user-name" name="name" type="text" required placeholder="O teu nome" />
+                <Label htmlFor="login-email">E-mail</Label>
+                <Input id="login-email" name="email" type="email" required placeholder="nome@empresa.com" autocomplete="email" />
               </div>
               <div class="space-y-2">
-                <Label htmlFor="user-email">E-mail</Label>
-                <Input id="user-email" name="email" type="email" required placeholder="nome@empresa.com" />
+                <Label htmlFor="login-password">Password</Label>
+                <Input id="login-password" name="password" type="password" required minlength="8" autocomplete="current-password" />
               </div>
-            </div>
-            <button type="submit" class={buttonVariants({ size: 'lg' })}>
-              Guardar dados
-            </button>
-            <p id="user-message" class="text-sm text-green-600 hidden">
-              Dados guardados com sucesso!
-            </p>
-          </form>
-        </section>
+              <button type="submit" class={buttonVariants({ size: "lg" })}>
+                Entrar
+              </button>
+              <p id="login-error" class="text-sm text-red-600 hidden"></p>
+            </form>
+          </section>
 
-        <section class="space-y-4">
-          <h2 class="text-xl font-semibold">Nova atividade</h2>
-          <form id="activity-form" class="space-y-4">
-            <div class="space-y-2">
-              <Label htmlFor="engagement">Engagement</Label>
-              <Input id="engagement" name="engagement" type="text" required placeholder="Projeto ou cliente" />
+          <section class="space-y-6">
+            <div>
+              <h2 class="text-xl font-semibold">Criar conta</h2>
+              <p class="text-sm text-muted-foreground">Indica o teu nome, e-mail e define uma password.</p>
             </div>
-            <div class="grid gap-4 md:grid-cols-2">
+            <form id="register-form" class="space-y-4">
               <div class="space-y-2">
-                <Label htmlFor="manager-email">Manager</Label>
-                <Input id="manager-email" name="managerEmail" type="email" placeholder="manager@empresa.com" />
+                <Label htmlFor="register-name">Nome</Label>
+                <Input id="register-name" name="name" type="text" required placeholder="O teu nome" autocomplete="name" />
               </div>
               <div class="space-y-2">
-                <Label htmlFor="process">Processo</Label>
-                <Input id="process" name="process" type="text" placeholder="Processo interno" />
+                <Label htmlFor="register-email">E-mail</Label>
+                <Input id="register-email" name="email" type="email" required placeholder="nome@empresa.com" autocomplete="email" />
               </div>
-            </div>
-            <div class="space-y-2">
-              <Label htmlFor="deliverable">Deliverable</Label>
-              <Input id="deliverable" name="deliverable" type="text" placeholder="Ex: Relatorio semanal" />
-            </div>
-            <button type="submit" class={buttonVariants({ size: 'lg' })}>
-              Iniciar atividade
-            </button>
-            <p id="activity-error" class="text-sm text-red-600 hidden"></p>
-          </form>
-        </section>
-
-        <section id="in-progress" class="hidden space-y-4 rounded-lg border border-dashed p-6">
-          <div class="flex items-start justify-between">
-            <div>
-              <h2 class="text-xl font-semibold">Atividade em curso</h2>
-              <p class="text-sm text-muted-foreground">Mantem este separador aberto enquanto trabalhas.</p>
-            </div>
-            <span id="timer" class="text-3xl font-bold">00:00</span>
-          </div>
-
-          <dl class="grid gap-4 md:grid-cols-2 text-sm">
-            <div>
-              <dt class="font-medium text-muted-foreground">Colaborador</dt>
-              <dd id="progress-user"></dd>
-            </div>
-            <div>
-              <dt class="font-medium text-muted-foreground">Engagement</dt>
-              <dd id="progress-engagement"></dd>
-            </div>
-            <div>
-              <dt class="font-medium text-muted-foreground">Manager</dt>
-              <dd id="progress-manager"></dd>
-            </div>
-            <div>
-              <dt class="font-medium text-muted-foreground">Processo</dt>
-              <dd id="progress-process"></dd>
-            </div>
-            <div>
-              <dt class="font-medium text-muted-foreground">Deliverable</dt>
-              <dd id="progress-deliverable"></dd>
-            </div>
-            <div>
-              <dt class="font-medium text-muted-foreground">Inicio</dt>
-              <dd id="progress-start"></dd>
-            </div>
-          </dl>
-
-          <button id="stop-button" class={buttonVariants({ size: 'lg', variant: 'destructive' })}>
-            Parar atividade
-          </button>
-          <p id="stop-message" class="text-sm text-green-600 hidden"></p>
-        </section>
+              <div class="space-y-2">
+                <Label htmlFor="register-password">Password</Label>
+                <Input id="register-password" name="password" type="password" required minlength="8" autocomplete="new-password" />
+                <p class="text-xs text-muted-foreground">A password deve ter, no mínimo, 8 caracteres.</p>
+              </div>
+              <button type="submit" class={buttonVariants({ size: "lg", variant: "secondary" })}>
+                Criar conta
+              </button>
+              <p id="register-error" class="text-sm text-red-600 hidden"></p>
+            </form>
+          </section>
+        </div>
       </div>
     </div>
 
     <script is:inline>
-      const COOKIE_NAME_KEY = 'lumio_name';
-      const COOKIE_EMAIL_KEY = 'lumio_email';
-      const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+      const loginError = document.getElementById('login-error');
+      const registerError = document.getElementById('register-error');
 
-      const userForm = document.getElementById('user-form');
-      const activityForm = document.getElementById('activity-form');
-      const inProgressSection = document.getElementById('in-progress');
-      const userMessage = document.getElementById('user-message');
-      const activityError = document.getElementById('activity-error');
-      const stopMessage = document.getElementById('stop-message');
-      const timerDisplay = document.getElementById('timer');
-
-      const inputs = {
-        name: document.getElementById('user-name'),
-        email: document.getElementById('user-email'),
-        engagement: document.getElementById('engagement'),
-        managerEmail: document.getElementById('manager-email'),
-        process: document.getElementById('process'),
-        deliverable: document.getElementById('deliverable'),
-      };
-
-      const progressFields = {
-        user: document.getElementById('progress-user'),
-        engagement: document.getElementById('progress-engagement'),
-        manager: document.getElementById('progress-manager'),
-        process: document.getElementById('progress-process'),
-        deliverable: document.getElementById('progress-deliverable'),
-        start: document.getElementById('progress-start'),
-      };
-
-      const getCookies = () => {
-        return document.cookie
-          .split('; ')
-          .filter(Boolean)
-          .map((row) => row.split('='))
-          .reduce((acc, [key, value]) => {
-            acc[decodeURIComponent(key)] = decodeURIComponent(value ?? '');
-            return acc;
-          }, {});
-      };
-
-      const setCookie = (key, value) => {
-        document.cookie = `${encodeURIComponent(key)}=${encodeURIComponent(value)}; path=/; max-age=${ONE_YEAR_SECONDS}; samesite=lax`;
-      };
-
-      const cookies = getCookies();
-      if (cookies[COOKIE_NAME_KEY]) {
-        inputs.name.value = cookies[COOKIE_NAME_KEY];
-      }
-      if (cookies[COOKIE_EMAIL_KEY]) {
-        inputs.email.value = cookies[COOKIE_EMAIL_KEY];
-      }
-
-      let activeActivityId = null;
-      let activityStartTimestamp = null;
-      let timerInterval = null;
-
-      const resetTimer = () => {
-        if (timerInterval) {
-          clearInterval(timerInterval);
-          timerInterval = null;
-        }
-        timerDisplay.textContent = '00:00';
-      };
-
-      const formatDuration = (seconds) => {
-        if (seconds == null) {
-          return '00:00';
-        }
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        const hours = Math.floor(minutes / 60);
-        const remainingMinutes = minutes % 60;
-
-        if (hours > 0) {
-          return `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
-        }
-
-        return `${String(remainingMinutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
-      };
-
-      const startTimer = () => {
-        resetTimer();
-        timerInterval = setInterval(() => {
-          if (!activityStartTimestamp) return;
-          const elapsedSeconds = Math.floor((Date.now() - activityStartTimestamp) / 1000);
-          timerDisplay.textContent = formatDuration(elapsedSeconds);
-        }, 1000);
-      };
-
-      const formatLisbon = (isoString) => {
-        const date = new Date(isoString);
-        return date.toLocaleString('pt-PT', {
-          timeZone: 'Europe/Lisbon',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-      };
-
-      userForm.addEventListener('submit', (event) => {
+      loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const nameValue = inputs.name.value.trim();
-        const emailValue = inputs.email.value.trim();
+        loginError.classList.add('hidden');
+        loginError.textContent = '';
 
-        setCookie(COOKIE_NAME_KEY, nameValue);
-        setCookie(COOKIE_EMAIL_KEY, emailValue);
-
-        userMessage.classList.remove('hidden');
-        userMessage.textContent = 'Dados guardados com sucesso!';
-        setTimeout(() => userMessage.classList.add('hidden'), 3000);
-      });
-
-      activityForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        activityError.classList.add('hidden');
-        stopMessage.classList.add('hidden');
-
-        const nameValue = inputs.name.value.trim();
-        const emailValue = inputs.email.value.trim();
-
-        if (!nameValue || !emailValue) {
-          activityError.textContent = 'Guarda primeiro o teu nome e e-mail.';
-          activityError.classList.remove('hidden');
-          return;
-        }
-
+        const formData = new FormData(loginForm);
         const payload = {
-          user_name: nameValue,
-          user_email: emailValue,
-          engagement: inputs.engagement.value.trim(),
-          manager_email: inputs.managerEmail.value.trim() || null,
-          process: inputs.process.value.trim() || null,
-          deliverable: inputs.deliverable.value.trim() || null,
+          email: formData.get('email'),
+          password: formData.get('password'),
         };
 
         try {
-          const response = await fetch('/api/activities', {
+          const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
           });
 
-          const result = await response.json();
+          const result = await response.json().catch(() => ({}));
 
-          if (!response.ok || !result.success) {
-            throw new Error(result.message || 'Nao foi possivel iniciar a atividade');
+          if (!response.ok) {
+            throw new Error(result.message || 'Nao foi possivel iniciar sessao');
           }
 
-          const { activity } = result;
-          activeActivityId = activity.id;
-          activityStartTimestamp = Date.parse(activity.started_at);
-
-          setCookie(COOKIE_NAME_KEY, nameValue);
-          setCookie(COOKIE_EMAIL_KEY, emailValue);
-
-          progressFields.user.textContent = `${nameValue} (${emailValue})`;
-          progressFields.engagement.textContent = payload.engagement;
-          progressFields.manager.textContent = payload.manager_email || 'Nao indicado';
-          progressFields.process.textContent = payload.process || 'Nao indicado';
-          progressFields.deliverable.textContent = payload.deliverable || 'Nao indicado';
-          progressFields.start.textContent = formatLisbon(activity.started_at);
-
-          inProgressSection.classList.remove('hidden');
-          startTimer();
-          activityForm.reset();
+          window.location.href = '/app';
         } catch (error) {
-          activityError.textContent = error.message;
-          activityError.classList.remove('hidden');
+          loginError.textContent = error.message;
+          loginError.classList.remove('hidden');
         }
       });
 
-      document.getElementById('stop-button').addEventListener('click', async () => {
-        if (!activeActivityId) {
-          return;
-        }
-        stopMessage.classList.add('hidden');
-        activityError.classList.add('hidden');
+      registerForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        registerError.classList.add('hidden');
+        registerError.textContent = '';
+
+        const formData = new FormData(registerForm);
+        const payload = {
+          name: formData.get('name'),
+          email: formData.get('email'),
+          password: formData.get('password'),
+        };
 
         try {
-          const response = await fetch(`/api/activities/${activeActivityId}`, {
-            method: 'PATCH',
+          const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
           });
-          const result = await response.json();
 
-          if (!response.ok || !result.success) {
-            throw new Error(result.message || 'Nao foi possivel terminar a atividade');
+          const result = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Nao foi possivel criar a conta');
           }
 
-          resetTimer();
-          inProgressSection.classList.add('hidden');
-          activeActivityId = null;
-          activityStartTimestamp = null;
-
-          const endedAt = result.activity.ended_at;
-          const durationSeconds = result.activity.duration_seconds;
-
-          stopMessage.textContent = `Atividade concluida as ${formatLisbon(endedAt)} (duracao: ${formatDuration(durationSeconds)}).`;
-          stopMessage.classList.remove('hidden');
-          setTimeout(() => stopMessage.classList.add('hidden'), 4000);
+          window.location.href = '/app';
         } catch (error) {
-          activityError.textContent = error.message;
-          activityError.classList.remove('hidden');
+          registerError.textContent = error.message;
+          registerError.classList.remove('hidden');
         }
       });
     </script>

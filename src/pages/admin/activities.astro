@@ -1,7 +1,11 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import { ActivityService } from '@/lib/services/activity';
-import { ActivitiesTable } from '@/components/admin/activities-table';
+import Layout from "@/layouts/Layout.astro";
+import { ActivityService } from "@/lib/services/activity";
+import { ActivitiesTable } from "@/components/admin/activities-table";
+
+if (Astro.locals.user?.rank !== "Admin") {
+  return Astro.redirect("/app");
+}
 
 const { DB } = Astro.locals.runtime.env;
 const activityService = new ActivityService(DB);
@@ -13,7 +17,7 @@ const activities = await activityService.getAll();
     <ActivitiesTable data={activities} client:only="react" />
   ) : (
     <p class="font-medium text-muted-foreground">
-      Ainda não existem atividades registadas. Começa por iniciar uma a partir da página principal.
+      Ainda nao existem atividades registadas. Comeca por iniciar uma a partir de "Nova atividade".
     </p>
   )}
 </Layout>

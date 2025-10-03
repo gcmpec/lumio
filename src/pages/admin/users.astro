@@ -1,0 +1,52 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { UserService } from "@/lib/services/user";
+
+if (Astro.locals.user?.rank !== "Admin") {
+  return Astro.redirect("/app");
+}
+
+const { DB } = Astro.locals.runtime.env;
+const userService = new UserService(DB);
+const users = await userService.listUsers();
+---
+
+<Layout title="Gerir utilizadores">
+  <div class="space-y-6">
+    <p class="text-sm text-muted-foreground">
+      Consulta a lista de utilizadores registados. Todos os novos registos entram com o rank <span class="font-semibold text-foreground">Staff</span> por defeito.
+    </p>
+
+    {users.length ? (
+      <div class="overflow-hidden rounded-xl border bg-card shadow">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>E-mail</TableHead>
+              <TableHead>Rank</TableHead>
+              <TableHead>Registado em</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow>
+                <TableCell class="font-medium">{user.name}</TableCell>
+                <TableCell class="text-muted-foreground">{user.email}</TableCell>
+                <TableCell>
+                  <span class="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
+                    {user.rank}
+                  </span>
+                </TableCell>
+                <TableCell>{new Date(user.created_at).toLocaleDateString('pt-PT')}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    ) : (
+      <p class="font-medium text-muted-foreground">Ainda nao existem utilizadores registados.</p>
+    )}
+  </div>
+</Layout>

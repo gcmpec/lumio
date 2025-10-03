@@ -1,0 +1,274 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { buttonVariants } from "@/components/ui/button";
+
+const user = Astro.locals.user;
+---
+
+<Layout title="Nova atividade">
+  <div class="space-y-10">
+    <section class="rounded-xl border bg-card p-6 shadow">
+      <h2 class="text-lg font-semibold">Os teus dados</h2>
+      {user ? (
+        <dl class="mt-4 grid gap-4 md:grid-cols-2 text-sm">
+          <div>
+            <dt class="text-muted-foreground">Nome</dt>
+            <dd class="font-medium">{user.name}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">E-mail</dt>
+            <dd class="font-medium">{user.email}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Rank</dt>
+            <dd class="font-medium">{user.rank}</dd>
+          </div>
+        </dl>
+      ) : (
+        <p class="mt-4 text-sm text-muted-foreground">Nao foi possivel carregar os teus dados.</p>
+      )}
+    </section>
+
+    <section class="rounded-xl border bg-card p-6 shadow space-y-6">
+      <div>
+        <h2 class="text-xl font-semibold">Nova atividade</h2>
+        <p class="text-sm text-muted-foreground">Indica os detalhes da tarefa que vais realizar.</p>
+      </div>
+      <form id="activity-form" class="space-y-4">
+        <div class="space-y-2">
+          <Label htmlFor="engagement">Engagement</Label>
+          <Input id="engagement" name="engagement" type="text" required placeholder="Projeto ou cliente" />
+        </div>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="space-y-2">
+            <Label htmlFor="manager-email">Manager</Label>
+            <Input id="manager-email" name="managerEmail" type="email" placeholder="manager@empresa.com" />
+          </div>
+          <div class="space-y-2">
+            <Label htmlFor="process">Processo</Label>
+            <Input id="process" name="process" type="text" placeholder="Processo interno" />
+          </div>
+        </div>
+        <div class="space-y-2">
+          <Label htmlFor="deliverable">Deliverable</Label>
+          <Input id="deliverable" name="deliverable" type="text" placeholder="Ex: Relatorio semanal" />
+        </div>
+        <button type="submit" class={buttonVariants({ size: "lg" })}>
+          Iniciar atividade
+        </button>
+        <p id="activity-error" class="text-sm text-red-600 hidden"></p>
+      </form>
+    </section>
+
+    <section id="in-progress" class="hidden space-y-4 rounded-xl border border-dashed bg-card p-6 shadow">
+      <div class="flex items-start justify-between">
+        <div>
+          <h2 class="text-xl font-semibold">Atividade em curso</h2>
+          <p class="text-sm text-muted-foreground">Mantem este separador aberto enquanto trabalhas.</p>
+        </div>
+        <span id="timer" class="text-3xl font-bold">00:00</span>
+      </div>
+
+      <dl class="grid gap-4 md:grid-cols-2 text-sm">
+        <div>
+          <dt class="font-medium text-muted-foreground">Colaborador</dt>
+          <dd id="progress-user"></dd>
+        </div>
+        <div>
+          <dt class="font-medium text-muted-foreground">Engagement</dt>
+          <dd id="progress-engagement"></dd>
+        </div>
+        <div>
+          <dt class="font-medium text-muted-foreground">Manager</dt>
+          <dd id="progress-manager"></dd>
+        </div>
+        <div>
+          <dt class="font-medium text-muted-foreground">Processo</dt>
+          <dd id="progress-process"></dd>
+        </div>
+        <div>
+          <dt class="font-medium text-muted-foreground">Deliverable</dt>
+          <dd id="progress-deliverable"></dd>
+        </div>
+        <div>
+          <dt class="font-medium text-muted-foreground">Inicio</dt>
+          <dd id="progress-start"></dd>
+        </div>
+      </dl>
+
+      <button id="stop-button" class={buttonVariants({ size: "lg", variant: "destructive" })}>
+        Parar atividade
+      </button>
+      <p id="stop-message" class="text-sm text-green-600 hidden"></p>
+    </section>
+  </div>
+
+  <script is:inline>
+    const activityForm = document.getElementById('activity-form');
+    const inProgressSection = document.getElementById('in-progress');
+    const activityError = document.getElementById('activity-error');
+    const stopMessage = document.getElementById('stop-message');
+    const timerDisplay = document.getElementById('timer');
+
+    const userName = {JSON.stringify(user?.name ?? '')};
+    const userEmail = {JSON.stringify(user?.email ?? '')};
+
+    const inputs = {
+      engagement: document.getElementById('engagement'),
+      managerEmail: document.getElementById('manager-email'),
+      process: document.getElementById('process'),
+      deliverable: document.getElementById('deliverable'),
+    };
+
+    const progressFields = {
+      user: document.getElementById('progress-user'),
+      engagement: document.getElementById('progress-engagement'),
+      manager: document.getElementById('progress-manager'),
+      process: document.getElementById('progress-process'),
+      deliverable: document.getElementById('progress-deliverable'),
+      start: document.getElementById('progress-start'),
+    };
+
+    let activeActivityId = null;
+    let activityStartTimestamp = null;
+    let timerInterval = null;
+
+    const resetTimer = () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      timerDisplay.textContent = '00:00';
+    };
+
+    const formatDuration = (seconds) => {
+      if (seconds == null) {
+        return '00:00';
+      }
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+
+      if (hours > 0) {
+        return `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+      }
+
+      return `${String(remainingMinutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    };
+
+    const startTimer = () => {
+      resetTimer();
+      timerInterval = setInterval(() => {
+        if (!activityStartTimestamp) return;
+        const elapsedSeconds = Math.floor((Date.now() - activityStartTimestamp) / 1000);
+        timerDisplay.textContent = formatDuration(elapsedSeconds);
+      }, 1000);
+    };
+
+    const formatLisbon = (isoString) => {
+      const date = new Date(isoString);
+      return date.toLocaleString('pt-PT', {
+        timeZone: 'Europe/Lisbon',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    };
+
+    activityForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      activityError.classList.add('hidden');
+      stopMessage.classList.add('hidden');
+
+      if (!userName || !userEmail) {
+        activityError.textContent = 'Nao foi possivel validar o utilizador. Termina sessão e volta a entrar.';
+        activityError.classList.remove('hidden');
+        return;
+      }
+
+      const payload = {
+        engagement: inputs.engagement.value.trim(),
+        manager_email: inputs.managerEmail.value.trim() || null,
+        process: inputs.process.value.trim() || null,
+        deliverable: inputs.deliverable.value.trim() || null,
+      };
+
+      if (!payload.engagement) {
+        activityError.textContent = 'Indica o engagement em que vais trabalhar.';
+        activityError.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/activities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || 'Nao foi possivel iniciar a atividade');
+        }
+
+        const { activity } = result;
+        activeActivityId = activity.id;
+        activityStartTimestamp = Date.parse(activity.started_at);
+
+        progressFields.user.textContent = `${userName} (${userEmail})`;
+        progressFields.engagement.textContent = payload.engagement;
+        progressFields.manager.textContent = payload.manager_email || 'Nao indicado';
+        progressFields.process.textContent = payload.process || 'Nao indicado';
+        progressFields.deliverable.textContent = payload.deliverable || 'Nao indicado';
+        progressFields.start.textContent = formatLisbon(activity.started_at);
+
+        inProgressSection.classList.remove('hidden');
+        startTimer();
+        activityForm.reset();
+      } catch (error) {
+        activityError.textContent = error.message;
+        activityError.classList.remove('hidden');
+      }
+    });
+
+    document.getElementById('stop-button').addEventListener('click', async () => {
+      if (!activeActivityId) {
+        return;
+      }
+      stopMessage.classList.add('hidden');
+      activityError.classList.add('hidden');
+
+      try {
+        const response = await fetch(`/api/activities/${activeActivityId}`, {
+          method: 'PATCH',
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || 'Nao foi possivel terminar a atividade');
+        }
+
+        resetTimer();
+        inProgressSection.classList.add('hidden');
+        activeActivityId = null;
+        activityStartTimestamp = null;
+
+        const endedAt = result.activity.ended_at;
+        const durationSeconds = result.activity.duration_seconds;
+
+        stopMessage.textContent = `Atividade concluida as ${formatLisbon(endedAt)} (duracao: ${formatDuration(durationSeconds)}).`;
+        stopMessage.classList.remove('hidden');
+        setTimeout(() => stopMessage.classList.add('hidden'), 4000);
+      } catch (error) {
+        activityError.textContent = error.message;
+        activityError.classList.remove('hidden');
+      }
+    });
+  </script>
+</Layout>

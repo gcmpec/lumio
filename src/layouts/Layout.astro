@@ -1,29 +1,31 @@
 ---
-import '@/styles/globals.css'
-import { Header } from '@/components/Header';
+import "@/styles/globals.css";
+import type { Rank } from "@/lib/types";
 
+const title = Astro.props.title || "Lumio";
 const currentPath = Astro.url.pathname;
-const title = Astro.props.title || 'Lumio';
----
+const user = Astro.locals.user;
 
-<script is:inline>
-  const getThemePreference = () => {
-    if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
-      return localStorage.getItem('theme');
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  };
-  const isDark = getThemePreference() === 'dark';
-  document.documentElement.classList[isDark ? 'add' : 'remove']('dark');
- 
-  if (typeof localStorage !== 'undefined') {
-    const observer = new MutationObserver(() => {
-      const isDark = document.documentElement.classList.contains('dark');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-  }
-</script>
+const mainLinks: Array<{ href: string; label: string; hidden?: boolean }> = [
+  { href: "/app", label: "Nova atividade" },
+  { href: "/admin/activities", label: "Atividades", hidden: user?.rank !== "Admin" },
+];
+
+const adminLinks: Array<{ href: string; label: string }> = [
+  { href: "/admin", label: "Dashboard" },
+  { href: "/admin/users", label: "Gerir Utilizadores" },
+];
+
+function isActive(path: string) {
+  if (path === "/app" && currentPath === "/") return true;
+  return currentPath === path || currentPath.startsWith(`${path}/`);
+}
+
+function formatRank(rank: Rank | undefined) {
+  if (!rank) return "";
+  return rank;
+}
+---
 
 <!doctype html>
 <html lang="pt">
@@ -32,16 +34,106 @@ const title = Astro.props.title || 'Lumio';
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title ? `${title} - Lumio` : 'Lumio'}</title>
+    <title>{title ? `${title} - Lumio` : "Lumio"}</title>
   </head>
-  <body>
-    <Header currentPath={currentPath} />
-    <div class="flex-1 space-y-4 p-8 pt-6">
-      <div class="flex items-center justify-between">
-        <h2 class="text-3xl font-bold tracking-tight">{title}</h2>
-        <slot name="actions" />
+  <body class="bg-background text-foreground">
+    <div class="min-h-screen flex">
+      <aside class="flex w-64 flex-col border-r bg-card">
+        <div class="px-6 py-5 border-b">
+          <a href="/app" class="block text-lg font-semibold tracking-tight text-foreground">Lumio</a>
+          {user && (
+            <div class="mt-4 space-y-1">
+              <p class="text-sm font-medium text-foreground">{user.name}</p>
+              <p class="text-xs text-muted-foreground">{user.email}</p>
+              <span class="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
+                {formatRank(user.rank)}
+              </span>
+            </div>
+          )}
+        </div>
+        <nav class="flex-1 overflow-y-auto px-4 py-5 space-y-6">
+          <div>
+            <p class="px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Menu</p>
+            <ul class="mt-3 space-y-1">
+              {mainLinks
+                .filter((link) => !link.hidden)
+                .map((link) => (
+                  <li>
+                    <a
+                      href={link.href}
+                      class={`flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                        isActive(link.href)
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+            </ul>
+          </div>
+          {user?.rank === "Admin" && (
+            <div>
+              <p class="px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Admin</p>
+              <ul class="mt-3 space-y-1">
+                {adminLinks.map((link) => (
+                  <li>
+                    <a
+                      href={link.href}
+                      class={`flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                        isActive(link.href)
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </nav>
+        <div class="border-t px-4 py-5">
+          <button
+            id="logout-button"
+            class="w-full rounded-md border border-destructive bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
+            type="button"
+          >
+            Terminar sessao
+          </button>
+        </div>
+      </aside>
+      <div class="flex min-h-screen flex-1 flex-col">
+        <header class="border-b px-8 py-6">
+          <div class="flex items-center justify-between">
+            <h1 class="text-2xl font-semibold tracking-tight">{title}</h1>
+            <slot name="actions" />
+          </div>
+        </header>
+        <main class="flex-1 space-y-6 p-8">
+          <slot />
+        </main>
       </div>
-      <slot />
     </div>
+
+    <script is:inline>
+      const logoutButton = document.getElementById('logout-button');
+      if (logoutButton) {
+        logoutButton.addEventListener('click', async () => {
+          try {
+            const response = await fetch('/api/auth/logout', { method: 'POST' });
+            if (!response.ok) {
+              throw new Error('Falha ao terminar sessao');
+            }
+          } catch (error) {
+            console.error(error);
+          } finally {
+            window.location.href = '/';
+          }
+        });
+      }
+    </script>
   </body>
 </html>
