@@ -19,6 +19,7 @@ const subscription = await subscriptionService.getById(id);
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Price</TableHead>
+            <TableHead>Created By</TableHead>
             <TableHead>Created At</TableHead>
             <TableHead>Updated At</TableHead>
           </TableRow>
@@ -28,6 +29,7 @@ const subscription = await subscriptionService.getById(id);
             <TableCell>{subscription.name}</TableCell>
             <TableCell>{subscription.description}</TableCell>
             <TableCell>{subscription.price}</TableCell>
+            <TableCell>{subscription.created_by ?? 'N/A'}</TableCell>
             <TableCell>{subscription.created_at}</TableCell>
             <TableCell>{subscription.updated_at}</TableCell>
           </TableRow>

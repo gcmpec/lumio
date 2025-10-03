@@ -42,6 +42,23 @@ type Feature = {
   description?: string;
 };
 
+const COOKIE_EMAIL_KEY = "lumio_email";
+
+const getCookieValue = (key: string): string => {
+  if (typeof document === "undefined") {
+    return "";
+  }
+
+  return document.cookie
+    .split("; ")
+    .map((row) => row.split("="))
+    .reduce((acc, [cookieKey, value]) => {
+      if (!cookieKey) return acc;
+      acc[decodeURIComponent(cookieKey)] = decodeURIComponent(value ?? "");
+      return acc;
+    }, {} as Record<string, string>)[key] ?? "";
+};
+
 export function CreateSubscriptionButton({ apiToken }: { apiToken: string }) {
   const [open, setOpen] = useState(false);
   const [features, setFeatures] = useState<Feature[]>([]);
@@ -87,10 +104,14 @@ export function CreateSubscriptionButton({ apiToken }: { apiToken: string }) {
       if (newFeature.name.trim()) {
         currentFeatures = await addFeature();
       }
+
+      const creatorEmail = getCookieValue(COOKIE_EMAIL_KEY).trim();
+
       const url = new URL(window.location.href);
       const response = await createSubscription(url.origin, apiToken, {
         ...data,
-        features: currentFeatures, // Use the up-to-date features
+        features: currentFeatures,
+        created_by: creatorEmail || null,
       });
       if (!response.success) {
         throw new Error("Failed to create subscription");

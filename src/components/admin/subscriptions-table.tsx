@@ -13,6 +13,7 @@ export type Subscription = {
   name: string;
   description: string;
   price: number;
+  created_by: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -44,6 +45,10 @@ const columns: ColumnDef<Subscription>[] = [
   columnHelper.accessor("price", {
     header: "Price",
     cell: (info) => info.getValue(),
+  }),
+  columnHelper.accessor("created_by", {
+    header: "Created By",
+    cell: (info) => info.getValue() || "N/A",
   }),
   columnHelper.accessor("created_at", {
     header: "Created At",

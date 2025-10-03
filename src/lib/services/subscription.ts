@@ -11,7 +11,7 @@ export const SUBSCRIPTION_QUERIES = {
     LEFT JOIN features 
       ON subscription_features.feature_id = features.id
   `,
-  INSERT_SUBSCRIPTION: `INSERT INTO subscriptions (name, description, price) VALUES(?, ?, ?)`,
+  INSERT_SUBSCRIPTION: `INSERT INTO subscriptions (name, description, price, created_by) VALUES (?, ?, ?, ?)`,
   INSERT_FEATURE: `INSERT OR IGNORE INTO features(name, description) VALUES(?, ?)`,
   SELECT_FEATURE_ID: `SELECT id FROM features WHERE name = ?`,
   INSERT_SUBSCRIPTION_FEATURE: `INSERT INTO subscription_features(subscription_id, feature_id) VALUES(?, ?)`,
@@ -71,13 +71,12 @@ export class SubscriptionService {
   }
 
   async create(subscriptionData) {
-    console.log(subscriptionData);
-    const { name, description, price, features } = subscriptionData;
+    const { name, description, price, features, created_by } = subscriptionData;
 
     const subscriptionResponse = await this.DB.prepare(
       SUBSCRIPTION_QUERIES.INSERT_SUBSCRIPTION,
     )
-      .bind(name, description, price)
+      .bind(name, description, price, created_by ?? null)
       .run();
 
     if (!subscriptionResponse.success) {
