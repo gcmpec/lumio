@@ -1,0 +1,89 @@
+---
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import Layout from '@/layouts/Layout.astro';
+import { ActivityService } from '@/lib/services/activity';
+
+const { DB } = Astro.locals.runtime.env;
+const { id } = Astro.params;
+const activityService = new ActivityService(DB);
+const activity = await activityService.getById(id);
+
+if (!activity) {
+  throw new Error('Atividade nao encontrada');
+}
+
+const formatter = new Intl.DateTimeFormat('pt-PT', {
+  timeZone: 'Europe/Lisbon',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
+function formatDuration(durationSeconds: number | null) {
+  if (durationSeconds == null) {
+    return 'Em curso';
+  }
+
+  const hours = Math.floor(durationSeconds / 3600);
+  const minutes = Math.floor((durationSeconds % 3600) / 60);
+  const seconds = durationSeconds % 60;
+
+  const parts = [];
+  if (hours) parts.push(`${hours}h`);
+  if (minutes) parts.push(`${minutes}m`);
+  if (!hours && !minutes) parts.push(`${seconds}s`);
+  return parts.join(' ') || '0m';
+}
+---
+
+<Layout title={`Atividade #${activity.id}`}>
+  <div class="flex flex-col gap-8">
+    <div>
+      <h2 class="text-xl font-bold tracking-tight">Detalhes</h2>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Campo</TableHead>
+            <TableHead>Valor</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell>Colaborador</TableCell>
+            <TableCell>{activity.user_name} ({activity.user_email})</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Engagement</TableCell>
+            <TableCell>{activity.engagement}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Manager</TableCell>
+            <TableCell>{activity.manager_email ?? 'Nao indicado'}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Processo</TableCell>
+            <TableCell>{activity.process ?? 'Nao indicado'}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Deliverable</TableCell>
+            <TableCell>{activity.deliverable ?? 'Nao indicado'}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Inicio</TableCell>
+            <TableCell>{formatter.format(new Date(activity.started_at))}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Fim</TableCell>
+            <TableCell>{activity.ended_at ? formatter.format(new Date(activity.ended_at)) : 'Em curso'}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Duracao</TableCell>
+            <TableCell>{formatDuration(activity.duration_seconds)}</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  </div>
+</Layout>

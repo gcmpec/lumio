@@ -1,84 +1,71 @@
 ---
-import { BadgeDollarSign, CalendarSync, User } from 'lucide-react';
+import { ActivityService } from '@/lib/services/activity';
 import Layout from '@/layouts/Layout.astro';
-import { APIDocumentation } from '@/components/admin/api-documentation';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-
-import { CustomerService } from '@/lib/services/customer';
-import { SubscriptionService } from '@/lib/services/subscription';
-import { CustomerSubscriptionService } from '@/lib/services/customer_subscription';
+import { ActivityCard } from '@/components/admin/activity-card';
 
 const { DB } = Astro.locals.runtime.env;
+const activityService = new ActivityService(DB);
+const summary = await activityService.getDailySummary();
+const activities = await activityService.getAll();
+const recentActivities = activities.slice(0, 5);
 
-const customerService = new CustomerService(DB);
-const subscriptionService = new SubscriptionService(DB);
-const customerSubscriptionService = new CustomerSubscriptionService(DB);
-
-const customers = await customerService.getAll();
-const subscriptions = await subscriptionService.getAll();
-const customerSubscriptions = await customerSubscriptionService.getAll();
-
-const data = [
+const metrics = [
   {
-    name: 'Customers',
-    value: customers.length,
-    icon: User,
-    href: '/admin/customers'
+    name: 'Atividades do dia',
+    value: summary.totalActivities,
+    description: 'Total de registos iniciados hoje',
   },
   {
-    name: 'Subscriptions',
-    value: subscriptions.length,
-    icon: BadgeDollarSign,
-    href: '/admin/subscriptions'
+    name: 'Utilizadores ativos',
+    value: summary.distinctUsers,
+    description: 'Colaboradores que registaram tempo hoje',
   },
   {
-    name: 'Customer Subscriptions',
-    value: customerSubscriptions.length,
-    icon: CalendarSync
+    name: 'Tempo total',
+    value: formatDuration(summary.totalSeconds),
+    description: 'Tempo acumulado nas atividades de hoje',
   }
-]
+];
+
+function formatDuration(totalSeconds: number) {
+  if (!totalSeconds) return '0m';
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const parts = [];
+  if (hours) parts.push(`${hours}h`);
+  if (minutes) parts.push(`${minutes}m`);
+  if (!hours && !minutes && seconds) parts.push(`${seconds}s`);
+  return parts.join(' ') || '0m';
+}
 ---
 
-<Layout title="Admin">
+<Layout title="Lumio Dashboard">
   <div class="space-y-8">
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4">
-      {data.map((item) => (
-        item.href ? (
-          <div class="rounded-xl border bg-card text-card-foreground hover:bg-muted shadow transition-colors">
-            <a href={item.href}>
-              <div class="p-6">
-                <div class="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div class="tracking-tight text-sm font-medium">{item.name}</div>
-                  <item.icon />
-                </div>
-                <div class="pt-0">
-                  <div class="text-2xl font-bold">{item.value}</div>
-                </div>
-              </div>
-            </a>
+      {metrics.map((item) => (
+        <div class="rounded-xl border bg-card text-card-foreground shadow">
+          <div class="p-6 space-y-2">
+            <div class="text-sm font-medium text-muted-foreground">{item.name}</div>
+            <div class="text-3xl font-bold">{item.value}</div>
+            <p class="text-xs text-muted-foreground">{item.description}</p>
           </div>
-        ) : (
-          <div class="rounded-xl border bg-card text-card-foreground shadow">
-            <div class="p-6">
-              <div class="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div class="tracking-tight text-sm font-medium">{item.name}</div>
-                <item.icon />
-              </div>
-              <div class="pt-0">
-                <div class="text-2xl font-bold">{item.value}</div>
-              </div>
-            </div>
-          </div>
-        )
+        </div>
       ))}
     </div>
 
     <section class="space-y-4">
-      <h2 class="text-3xl font-bold tracking-tight">API</h2>
-      <div>
-        <APIDocumentation client:only="react" />
-      </div>
+      <h2 class="text-2xl font-semibold tracking-tight">Ultimas atividades</h2>
+      {recentActivities.length ? (
+        <div class="space-y-3">
+          {recentActivities.map((activity) => (
+            <ActivityCard activity={activity} />
+          ))}
+        </div>
+      ) : (
+        <p class="text-muted-foreground">Ainda nao existem atividades registadas hoje.</p>
+      )}
     </section>
   </div>
 </Layout>

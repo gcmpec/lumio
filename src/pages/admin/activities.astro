@@ -1,0 +1,19 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { ActivityService } from '@/lib/services/activity';
+import { ActivitiesTable } from '@/components/admin/activities-table';
+
+const { DB } = Astro.locals.runtime.env;
+const activityService = new ActivityService(DB);
+const activities = await activityService.getAll();
+---
+
+<Layout title="Atividades">
+  {activities.length ? (
+    <ActivitiesTable data={activities} client:only="react" />
+  ) : (
+    <p class="font-medium text-muted-foreground">
+      Ainda não existem atividades registadas. Começa por iniciar uma a partir da página principal.
+    </p>
+  )}
+</Layout>
