@@ -1,6 +1,9 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { UserService } from "@/lib/services/user";
 
 if (Astro.locals.user?.rank !== "Admin") {
@@ -10,43 +13,325 @@ if (Astro.locals.user?.rank !== "Admin") {
 const { DB } = Astro.locals.runtime.env;
 const userService = new UserService(DB);
 const users = await userService.listUsers();
+const hasUsers = users.length > 0;
 ---
 
 <Layout title="Gerir utilizadores">
   <div class="space-y-6">
     <p class="text-sm text-muted-foreground">
-      Consulta a lista de utilizadores registados. Todos os novos registos entram com o rank <span class="font-semibold text-foreground">Staff</span> por defeito.
+      Consulta e administra os utilizadores registados. Podes editar os dados, repor uma palavra-passe ou remover um acesso se necessário.
     </p>
 
-    {users.length ? (
-      <div class="overflow-hidden rounded-xl border bg-card shadow">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>E-mail</TableHead>
-              <TableHead>Rank</TableHead>
-              <TableHead>Registado em</TableHead>
+    <div
+      id="user-feedback"
+      class="hidden rounded-md border px-4 py-3 text-sm"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+    <div
+      id="users-table-wrapper"
+      class={hasUsers ? "overflow-hidden rounded-xl border bg-card shadow" : "hidden overflow-hidden rounded-xl border bg-card shadow"}
+    >
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Nome</TableHead>
+            <TableHead>E-mail</TableHead>
+            <TableHead>Rank</TableHead>
+            <TableHead>Registado em</TableHead>
+            <TableHead class="w-[220px]">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody id="users-table-body">
+          {users.map((user) => (
+            <TableRow
+              data-user-id={user.id}
+              data-user-name={user.name}
+              data-user-email={user.email}
+              data-user-rank={user.rank}
+            >
+              <TableCell data-field="name" class="font-medium">{user.name}</TableCell>
+              <TableCell data-field="email" class="text-muted-foreground">{user.email}</TableCell>
+              <TableCell data-field="rank">
+                <span
+                  data-rank-label
+                  class="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground"
+                >
+                  {user.rank}
+                </span>
+              </TableCell>
+              <TableCell>{new Date(user.created_at).toLocaleDateString('pt-PT')}</TableCell>
+              <TableCell>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    class={buttonVariants({ variant: "secondary", size: "sm" })}
+                    data-action="edit"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    class={buttonVariants({ variant: "outline", size: "sm" })}
+                    data-action="reset"
+                  >
+                    Repor palavra-passe
+                  </button>
+                  <button
+                    type="button"
+                    class={buttonVariants({ variant: "destructive", size: "sm" })}
+                    data-action="delete"
+                  >
+                    Apagar
+                  </button>
+                </div>
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow>
-                <TableCell class="font-medium">{user.name}</TableCell>
-                <TableCell class="text-muted-foreground">{user.email}</TableCell>
-                <TableCell>
-                  <span class="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
-                    {user.rank}
-                  </span>
-                </TableCell>
-                <TableCell>{new Date(user.created_at).toLocaleDateString('pt-PT')}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    ) : (
-      <p class="font-medium text-muted-foreground">Ainda nao existem utilizadores registados.</p>
-    )}
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+
+    <p
+      id="users-empty-state"
+      class={hasUsers ? "hidden text-sm text-muted-foreground" : "text-sm text-muted-foreground"}
+    >
+      Ainda não existem utilizadores registados.
+    </p>
   </div>
+
+  <dialog
+    id="edit-dialog"
+    class="w-full max-w-lg rounded-xl border bg-card p-0 text-card-foreground shadow-xl"
+  >
+    <form id="edit-form" method="dialog" class="space-y-6 p-6">
+      <div class="space-y-1">
+        <h2 class="text-lg font-semibold">Editar utilizador</h2>
+        <p class="text-sm text-muted-foreground">Altera os dados necessários e guarda as alterações.</p>
+      </div>
+      <p id="edit-error" class="hidden text-sm text-red-600"></p>
+      <div class="space-y-4">
+        <div class="space-y-2">
+          <Label htmlFor="edit-name">Nome</Label>
+          <Input id="edit-name" name="name" type="text" required autocomplete="off" />
+        </div>
+        <div class="space-y-2">
+          <Label htmlFor="edit-email">E-mail</Label>
+          <Input id="edit-email" name="email" type="email" required autocomplete="off" />
+        </div>
+        <div class="space-y-2">
+          <Label htmlFor="edit-rank">Rank</Label>
+          <select
+            id="edit-rank"
+            name="rank"
+            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            required
+          >
+            <option value="Staff">Staff</option>
+            <option value="Senior">Senior</option>
+            <option value="Manager">Manager</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button
+          type="button"
+          id="edit-cancel"
+          class={buttonVariants({ variant: "outline", size: "sm" })}
+        >
+          Cancelar
+        </button>
+        <button type="submit" class={buttonVariants({ size: "sm" })}>Guardar alterações</button>
+      </div>
+    </form>
+  </dialog>
+
+  <style is:inline>
+    dialog::backdrop {
+      background-color: rgba(15, 23, 42, 0.35);
+    }
+  </style>
+
+  <script is:inline>
+    const composeUrl = (userId, suffix = '') => `/api/admin/users/${userId}${suffix}`;
+    const tableWrapper = document.getElementById('users-table-wrapper');
+    const tableBody = document.getElementById('users-table-body');
+    const emptyState = document.getElementById('users-empty-state');
+    const feedback = document.getElementById('user-feedback');
+    const successClasses = ['border-green-200', 'bg-green-50', 'text-green-700'];
+    const errorClasses = ['border-red-200', 'bg-red-50', 'text-red-700'];
+    let feedbackTimeout;
+
+    const showFeedback = (message, variant = 'success') => {
+      if (!feedback) return;
+      feedback.textContent = message;
+      feedback.classList.remove('hidden', ...successClasses, ...errorClasses);
+      if (variant === 'success') {
+        feedback.classList.add(...successClasses);
+      } else {
+        feedback.classList.add(...errorClasses);
+      }
+      if (feedbackTimeout) {
+        clearTimeout(feedbackTimeout);
+      }
+      feedbackTimeout = setTimeout(() => {
+        feedback.classList.add('hidden');
+      }, 6000);
+    };
+
+    const editDialog = document.getElementById('edit-dialog');
+    const editForm = document.getElementById('edit-form');
+    const editName = document.getElementById('edit-name');
+    const editEmail = document.getElementById('edit-email');
+    const editRank = document.getElementById('edit-rank');
+    const editError = document.getElementById('edit-error');
+    const editCancel = document.getElementById('edit-cancel');
+    let currentRow = null;
+
+    const closeEditDialog = () => {
+      if (!editDialog) return;
+      editDialog.close();
+      if (editError) {
+        editError.textContent = '';
+        editError.classList.add('hidden');
+      }
+      if (editForm) {
+        editForm.reset();
+        delete editForm.dataset.userId;
+      }
+      currentRow = null;
+    };
+
+    if (editCancel) {
+      editCancel.addEventListener('click', (event) => {
+        event.preventDefault();
+        closeEditDialog();
+      });
+    }
+
+    if (editDialog) {
+      editDialog.addEventListener('cancel', (event) => {
+        event.preventDefault();
+        closeEditDialog();
+      });
+    }
+
+    document.querySelectorAll('[data-action="edit"]').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (!editDialog || !editForm || !editName || !editEmail || !editRank) return;
+        const row = button.closest('[data-user-id]');
+        if (!row) return;
+        currentRow = row;
+        const userId = row.dataset.userId;
+        if (!userId) return;
+        editForm.dataset.userId = userId;
+        editName.value = row.dataset.userName || '';
+        editEmail.value = row.dataset.userEmail || '';
+        editRank.value = row.dataset.userRank || 'Staff';
+        editDialog.showModal();
+      });
+    });
+
+    if (editForm) {
+      editForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!currentRow || !editName || !editEmail || !editRank) return;
+        const userId = editForm.dataset.userId;
+        if (!userId) return;
+        const payload = {
+          name: editName.value.trim(),
+          email: editEmail.value.trim().toLowerCase(),
+          rank: editRank.value,
+        };
+        if (!payload.name || !payload.email) {
+          if (editError) {
+            editError.textContent = 'Nome e e-mail são obrigatórios.';
+            editError.classList.remove('hidden');
+          }
+          return;
+        }
+        try {
+          const response = await fetch(composeUrl(userId), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok || !result?.success) {
+            throw new Error(result?.message || 'Não foi possível atualizar o utilizador.');
+          }
+          currentRow.dataset.userName = payload.name;
+          currentRow.dataset.userEmail = payload.email;
+          currentRow.dataset.userRank = payload.rank;
+          const nameCell = currentRow.querySelector('[data-field="name"]');
+          if (nameCell) nameCell.textContent = payload.name;
+          const emailCell = currentRow.querySelector('[data-field="email"]');
+          if (emailCell) emailCell.textContent = payload.email;
+          const rankBadge = currentRow.querySelector('[data-field="rank"] [data-rank-label]');
+          if (rankBadge) rankBadge.textContent = payload.rank;
+          closeEditDialog();
+          showFeedback('Utilizador atualizado com sucesso.');
+        } catch (error) {
+          if (editError) {
+            editError.textContent = error instanceof Error ? error.message : 'Não foi possível atualizar o utilizador.';
+            editError.classList.remove('hidden');
+          }
+        }
+      });
+    }
+
+    document.querySelectorAll('[data-action="reset"]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const row = button.closest('[data-user-id]');
+        if (!row) return;
+        const userId = row.dataset.userId;
+        if (!userId) return;
+        button.disabled = true;
+        try {
+          const response = await fetch(composeUrl(userId, '/reset-password'), { method: 'POST' });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok || !result?.success) {
+            throw new Error(result?.message || 'Não foi possível repor a palavra-passe.');
+          }
+          showFeedback(`Palavra-passe temporária: ${result.temporaryPassword}`, 'success');
+        } catch (error) {
+          showFeedback(error instanceof Error ? error.message : 'Não foi possível repor a palavra-passe.', 'error');
+        } finally {
+          button.disabled = false;
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-action="delete"]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const row = button.closest('[data-user-id]');
+        if (!row) return;
+        const userId = row.dataset.userId;
+        if (!userId) return;
+        const userName = row.dataset.userName || '';
+        const confirmed = window.confirm(`Apagar o utilizador ${userName}?`);
+        if (!confirmed) return;
+        button.disabled = true;
+        try {
+          const response = await fetch(composeUrl(userId), { method: 'DELETE' });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok || !result?.success) {
+            throw new Error(result?.message || 'Não foi possível apagar o utilizador.');
+          }
+          row.remove();
+          showFeedback('Utilizador apagado com sucesso.', 'success');
+          if (tableBody && tableBody.children.length === 0) {
+            if (tableWrapper) tableWrapper.classList.add('hidden');
+            if (emptyState) emptyState.classList.remove('hidden');
+          }
+        } catch (error) {
+          showFeedback(error instanceof Error ? error.message : 'Não foi possível apagar o utilizador.', 'error');
+        } finally {
+          button.disabled = false;
+        }
+      });
+    });
+  </script>
 </Layout>

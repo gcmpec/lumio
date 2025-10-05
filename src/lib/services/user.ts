@@ -13,6 +13,8 @@ type UserRow = {
 const PASSWORD_MIN_LENGTH = 8;
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
 
+const VALID_RANKS: readonly Rank[] = ["Staff", "Senior", "Manager", "Admin"];
+
 function bytesToHex(bytes: Uint8Array) {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
@@ -82,6 +84,20 @@ function nowIso() {
 
 function futureIso(msAhead: number) {
   return new Date(Date.now() + msAhead).toISOString();
+}
+
+const TEMP_PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#$%";
+
+function generateTemporaryPassword(length = 12) {
+  const alphabet = TEMP_PASSWORD_ALPHABET;
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  let result = "";
+  for (let i = 0; i < bytes.length; i += 1) {
+    const index = bytes[i] % alphabet.length;
+    result += alphabet[index];
+  }
+  return result;
 }
 
 export interface UserRecord {
@@ -177,11 +193,12 @@ export class UserService {
 
     const passwordHash = await hashPassword(password);
     const now = nowIso();
+    const normalizedRank = VALID_RANKS.includes(rank) ? rank : "Staff";
 
     const response = await this.DB.prepare(
       "INSERT INTO users (name, email, password_hash, rank, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
     )
-      .bind(trimmedName, normalizedEmail, passwordHash, rank, now, now)
+      .bind(trimmedName, normalizedEmail, passwordHash, normalizedRank, now, now)
       .run();
 
     if (!response.success) {
@@ -193,10 +210,127 @@ export class UserService {
       id,
       name: trimmedName,
       email: normalizedEmail,
-      rank,
+      rank: normalizedRank,
       created_at: now,
       updated_at: now,
     };
+  }
+
+  async updateUser(id: number, updates: { name?: string; email?: string; rank?: Rank }): Promise<UserRecord> {
+    const existing = await this.getById(id);
+    if (!existing) {
+      throw new Error("User not found");
+    }
+
+    const fields: string[] = [];
+    const values: unknown[] = [];
+
+    if (typeof updates.name === "string") {
+      const trimmedName = updates.name.trim();
+      if (!trimmedName) {
+        throw new Error("Name is required");
+      }
+      fields.push("name = ?");
+      values.push(trimmedName);
+    }
+
+    if (typeof updates.email === "string") {
+      const trimmedEmail = updates.email.trim().toLowerCase();
+      if (!trimmedEmail) {
+        throw new Error("Email is required");
+      }
+      const conflict = await this.DB.prepare("SELECT id FROM users WHERE email = ? AND id != ?")
+        .bind(trimmedEmail, id)
+        .first();
+      if (conflict) {
+        throw new Error("Email already registered");
+      }
+      fields.push("email = ?");
+      values.push(trimmedEmail);
+    }
+
+    if (typeof updates.rank === "string") {
+      if (!VALID_RANKS.includes(updates.rank as Rank)) {
+        throw new Error("Invalid rank");
+      }
+      fields.push("rank = ?");
+      values.push(updates.rank);
+    }
+
+    if (!fields.length) {
+      return existing;
+    }
+
+    const now = nowIso();
+    fields.push("updated_at = ?");
+    values.push(now);
+    values.push(id);
+
+    const query = `UPDATE users SET ${fields.join(", ")} WHERE id = ?`;
+    const response = await this.DB.prepare(query)
+      .bind(...values)
+      .run();
+
+    if (!response.success) {
+      throw new Error("Failed to update user");
+    }
+
+    const updated = await this.getById(id);
+    if (!updated) {
+      throw new Error("Failed to load updated user");
+    }
+
+    return updated;
+  }
+
+
+
+  async resetPassword(id: number): Promise<{ user: UserRecord; temporaryPassword: string }> {
+    const existing = await this.getById(id);
+    if (!existing) {
+      throw new Error("User not found");
+    }
+
+    const temporaryPassword = generateTemporaryPassword();
+    const passwordHash = await hashPassword(temporaryPassword);
+    const now = nowIso();
+
+    const response = await this.DB.prepare(
+      "UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?",
+    )
+      .bind(passwordHash, now, id)
+      .run();
+
+    if (!response.success) {
+      throw new Error("Failed to reset password");
+    }
+
+    const updated = await this.getById(id);
+    if (!updated) {
+      throw new Error("Failed to load updated user");
+    }
+
+    return {
+      user: updated,
+      temporaryPassword,
+    };
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    const response = await this.DB.prepare(
+      "DELETE FROM users WHERE id = ?",
+    )
+      .bind(id)
+      .run();
+
+    if (!response.success) {
+      throw new Error("Failed to delete user");
+    }
+
+    const changes = response.meta?.changes ?? 0;
+    if (changes === 0) {
+      throw new Error("User not found");
+    }
   }
 
   async validateCredentials(email: string, password: string): Promise<UserRecord | null> {

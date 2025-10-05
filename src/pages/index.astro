@@ -12,7 +12,7 @@ import "@/styles/globals.css";
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    <title>Lumio | Autentica��o</title>
+    <title>Lumio | Autenticação</title>
   </head>
   <body class="bg-background text-foreground">
     <div class="min-h-screen flex items-center justify-center px-6 py-12">
@@ -20,15 +20,15 @@ import "@/styles/globals.css";
         <header class="space-y-2 text-center">
           <h1 class="text-3xl font-bold">Bem-vindo ao Lumio</h1>
           <p class="text-sm text-muted-foreground">
-            Inicia sessao com o teu e-mail e password ou cria uma nova conta para comecar a registar atividades.
+            Inicia sessão com o teu e-mail e password ou cria uma nova conta para comecar a registar atividades.
           </p>
         </header>
 
         <div class="grid gap-8 lg:grid-cols-2">
           <section class="space-y-6">
             <div>
-              <h2 class="text-xl font-semibold">Iniciar sessao</h2>
-              <p class="text-sm text-muted-foreground">Acede ao teu espa�o com o e-mail e password.</p>
+              <h2 class="text-xl font-semibold">Iniciar sessão</h2>
+              <p class="text-sm text-muted-foreground">Acede ao teu espaço com o e-mail e password.</p>
             </div>
             <form id="login-form" class="space-y-4">
               <div class="space-y-2">
@@ -60,10 +60,24 @@ import "@/styles/globals.css";
                 <Label htmlFor="register-email">E-mail</Label>
                 <Input id="register-email" name="email" type="email" required placeholder="nome@empresa.com" autocomplete="email" />
               </div>
+
+              <div class="space-y-2">
+                <Label htmlFor="register-rank">Rank</Label>
+                <select
+                  id="register-rank"
+                  name="rank"
+                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  required
+                >
+                  <option value="Staff">Staff</option>
+                  <option value="Senior">Senior</option>
+                  <option value="Manager">Manager</option>
+                </select>
+              </div>
               <div class="space-y-2">
                 <Label htmlFor="register-password">Password</Label>
                 <Input id="register-password" name="password" type="password" required minlength="8" autocomplete="new-password" />
-                <p class="text-xs text-muted-foreground">A password deve ter, no m�nimo, 8 caracteres.</p>
+                <p class="text-xs text-muted-foreground">A password deve ter, no mínimo, 8 caracteres.</p>
               </div>
               <button type="submit" class={buttonVariants({ size: "lg", variant: "secondary" })}>
                 Criar conta
@@ -102,7 +116,7 @@ import "@/styles/globals.css";
           const result = await response.json().catch(() => ({}));
 
           if (!response.ok) {
-            throw new Error(result.message || 'Nao foi possivel iniciar sessao');
+            throw new Error(result.message || 'Não foi possivel iniciar sessão');
           }
 
           window.location.href = '/app';
@@ -122,6 +136,7 @@ import "@/styles/globals.css";
           name: formData.get('name'),
           email: formData.get('email'),
           password: formData.get('password'),
+          rank: (formData.get('rank') || 'Staff'),
         };
 
         try {
@@ -134,7 +149,7 @@ import "@/styles/globals.css";
           const result = await response.json().catch(() => ({}));
 
           if (!response.ok) {
-            throw new Error(result.message || 'Nao foi possivel criar a conta');
+            throw new Error(result.message || 'Não foi possivel criar a conta');
           }
 
           window.location.href = '/app';

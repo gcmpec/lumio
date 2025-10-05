@@ -11,6 +11,10 @@ const mainLinks: Array<{ href: string; label: string; hidden?: boolean }> = [
   { href: "/admin/activities", label: "Atividades", hidden: user?.rank !== "Admin" },
 ];
 
+const managerLinks: Array<{ href: string; label: string }> = [
+  { href: "/manager/engagements", label: "Gerir Engagements" },
+];
+
 const adminLinks: Array<{ href: string; label: string }> = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/users", label: "Gerir Utilizadores" },
@@ -73,6 +77,27 @@ function formatRank(rank: Rank | undefined) {
                 ))}
             </ul>
           </div>
+          {(user?.rank === "Manager" || user?.rank === "Admin") && (
+            <div>
+              <p class="px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Manager</p>
+              <ul class="mt-3 space-y-1">
+                {managerLinks.map((link) => (
+                  <li>
+                    <a
+                      href={link.href}
+                      class={`flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                        isActive(link.href)
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {user?.rank === "Admin" && (
             <div>
               <p class="px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Admin</p>
@@ -101,7 +126,7 @@ function formatRank(rank: Rank | undefined) {
             class="w-full rounded-md border border-destructive bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
             type="button"
           >
-            Terminar sessao
+            Terminar sessão
           </button>
         </div>
       </aside>
@@ -125,7 +150,7 @@ function formatRank(rank: Rank | undefined) {
           try {
             const response = await fetch('/api/auth/logout', { method: 'POST' });
             if (!response.ok) {
-              throw new Error('Falha ao terminar sessao');
+              throw new Error('Falha ao terminar sessão');
             }
           } catch (error) {
             console.error(error);

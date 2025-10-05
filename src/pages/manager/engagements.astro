@@ -1,0 +1,18 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import EngagementManager from "@/components/manager/EngagementManager";
+
+const user = Astro.locals.user;
+if (!user || (user.rank !== "Manager" && user.rank !== "Admin")) {
+  return Astro.redirect("/app");
+}
+---
+
+<Layout title="Gerir engagements">
+  <div class="space-y-6">
+    <p class="text-sm text-muted-foreground">
+      Configura os engagements da tua equipa para que as tarefas e deliverables fiquem disponíveis quando os colaboradores iniciam atividades.
+    </p>
+    <EngagementManager client:load />
+  </div>
+</Layout>

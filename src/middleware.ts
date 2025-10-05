@@ -63,5 +63,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return context.redirect("/app");
   }
 
+  if (locals.user && path.startsWith("/manager") && !["Manager", "Admin"].includes(locals.user.rank)) {
+    return context.redirect("/app");
+  }
+
   return next();
 });
