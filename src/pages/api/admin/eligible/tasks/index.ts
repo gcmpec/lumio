@@ -2,10 +2,10 @@ import { EngagementService } from "@/lib/services/engagement";
 
 function ensureAdmin(locals: any): { user?: { id: number }; response?: Response } {
   if (!locals.user) {
-    return { response: Response.json({ message: "Nǜo autenticado" }, { status: 401 }) };
+    return { response: Response.json({ message: "Não autenticado" }, { status: 401 }) };
   }
   if (locals.user.rank !== "Admin") {
-    return { response: Response.json({ message: "Sem permissǜo" }, { status: 403 }) };
+    return { response: Response.json({ message: "Sem permissão" }, { status: 403 }) };
   }
   return { user: locals.user };
 }
@@ -21,7 +21,7 @@ export async function GET({ locals }) {
     const tasks = await service.listEligibleTasks();
     return Response.json({ success: true, items: tasks });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Nǜo foi poss��vel carregar as tarefas eleg��veis";
+    const message = error instanceof Error ? error.message : "Não foi possível carregar as tarefas elegíveis";
     return Response.json({ success: false, message }, { status: 500 });
   }
 }
@@ -46,7 +46,7 @@ export async function POST({ locals, request }) {
     const task = await service.createEligibleTask({ macroprocess, process, label });
     return Response.json({ success: true, task }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Nǜo foi poss��vel criar a tarefa eleg��vel";
+    const message = error instanceof Error ? error.message : "Não foi possível criar a tarefa elegível";
     const status = message.includes("already exists") ? 409 : 500;
     return Response.json({ success: false, message }, { status });
   }

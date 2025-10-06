@@ -1,5 +1,5 @@
-import { EngagementService } from "@/lib/services/engagement";
 import { formatEligibleDeliverableDisplay, formatEligibleTaskDisplay, DELIVERABLE_PERIODICITY_LABELS } from "@/lib/engagement/catalog";
+import { EngagementService } from "@/lib/services/engagement";
 import type { Rank } from "@/lib/types";
 
 type AllowedRank = Extract<Rank, "Manager" | "Admin">;
@@ -32,6 +32,7 @@ export async function GET({ params, request, locals }) {
       const engagements = await service.searchEligibleEngagements(search);
       return Response.json({ success: true, items: engagements });
     }
+
     if (type === "tasks") {
       const tasks = await service.searchEligibleTasks(search);
       return Response.json({
@@ -42,6 +43,7 @@ export async function GET({ params, request, locals }) {
         })),
       });
     }
+
     if (type === "deliverables") {
       const deliverables = await service.searchEligibleDeliverables(search);
       return Response.json({
@@ -53,6 +55,7 @@ export async function GET({ params, request, locals }) {
         })),
       });
     }
+
     return Response.json({ message: "Tipo desconhecido" }, { status: 400 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Não foi possível carregar as opções";
