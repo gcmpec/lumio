@@ -1,4 +1,5 @@
 import { EngagementService } from "@/lib/services/engagement";
+import { formatEligibleDeliverableDisplay, formatEligibleTaskDisplay, DELIVERABLE_PERIODICITY_LABELS } from "@/lib/engagement/catalog";
 import type { Rank } from "@/lib/types";
 
 type AllowedRank = Extract<Rank, "Manager" | "Admin">;
@@ -33,11 +34,24 @@ export async function GET({ params, request, locals }) {
     }
     if (type === "tasks") {
       const tasks = await service.searchEligibleTasks(search);
-      return Response.json({ success: true, items: tasks });
+      return Response.json({
+        success: true,
+        items: tasks.map((task) => ({
+          ...task,
+          display_label: formatEligibleTaskDisplay(task),
+        })),
+      });
     }
     if (type === "deliverables") {
       const deliverables = await service.searchEligibleDeliverables(search);
-      return Response.json({ success: true, items: deliverables });
+      return Response.json({
+        success: true,
+        items: deliverables.map((deliverable) => ({
+          ...deliverable,
+          periodicity_label: DELIVERABLE_PERIODICITY_LABELS[deliverable.periodicity],
+          display_label: formatEligibleDeliverableDisplay(deliverable),
+        })),
+      });
     }
     return Response.json({ message: "Tipo desconhecido" }, { status: 400 });
   } catch (error) {

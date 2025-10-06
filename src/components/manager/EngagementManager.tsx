@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { DeliverablePeriodicity } from "@/lib/engagement/catalog";
 import clsx from "clsx";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,9 +11,20 @@ interface EligibleEngagement {
   engagement_name: string;
 }
 
-interface EligibleItem {
+interface EligibleTaskOption {
+  id: number;
+  macroprocess: string;
+  process: string;
+  label: string;
+  display_label: string;
+}
+
+interface EligibleDeliverableOption {
   id: number;
   label: string;
+  periodicity: DeliverablePeriodicity;
+  periodicity_label: string;
+  display_label: string;
 }
 
 interface EngagementTaskInput {
@@ -59,10 +71,17 @@ const messageClasses = {
   error: "border-red-200 bg-red-50 text-red-700",
 };
 
-function matchEligibleId(label: string, items: EligibleItem[]): number | null {
-  const normalized = label.trim().toLowerCase();
+function matchEligibleId(
+  value: string,
+  items: Array<{ id: number; label: string; display_label: string }>,
+): number | null {
+  const normalized = value.trim().toLowerCase();
   if (!normalized) return null;
-  const match = items.find((item) => item.label.trim().toLowerCase() === normalized);
+  const match = items.find((item) => {
+    const display = item.display_label.trim().toLowerCase();
+    const base = item.label.trim().toLowerCase();
+    return display === normalized || base === normalized;
+  });
   return match ? match.id : null;
 }
 
@@ -89,8 +108,8 @@ type EngagementPayload = {
 const EngagementManager = () => {
   const [engagements, setEngagements] = useState<ManagerEngagementRecord[]>([]);
   const [eligibleEngagements, setEligibleEngagements] = useState<EligibleEngagement[]>([]);
-  const [eligibleTasks, setEligibleTasks] = useState<EligibleItem[]>([]);
-  const [eligibleDeliverables, setEligibleDeliverables] = useState<EligibleItem[]>([]);
+  const [eligibleTasks, setEligibleTasks] = useState<EligibleTaskOption[]>([]);
+  const [eligibleDeliverables, setEligibleDeliverables] = useState<EligibleDeliverableOption[]>([]);
   const [form, setForm] = useState<FormState>(createEmptyFormState);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,8 +130,8 @@ const EngagementManager = () => {
     try {
       const [engagementRes, taskRes, deliverableRes] = await Promise.all([
         fetchJSON<{ items: EligibleEngagement[] }>("/api/manager/eligible/engagements"),
-        fetchJSON<{ items: EligibleItem[] }>("/api/manager/eligible/tasks"),
-        fetchJSON<{ items: EligibleItem[] }>("/api/manager/eligible/deliverables"),
+        fetchJSON<{ items: EligibleTaskOption[] }>("/api/manager/eligible/tasks"),
+        fetchJSON<{ items: EligibleDeliverableOption[] }>("/api/manager/eligible/deliverables"),
       ]);
       setEligibleEngagements(engagementRes.items ?? []);
       setEligibleTasks(taskRes.items ?? []);
@@ -139,6 +158,18 @@ const EngagementManager = () => {
     loadEligibleData();
   }, []);
 
+  const taskOptionsById = useMemo(() => {
+    const map = new Map<number, EligibleTaskOption>();
+    eligibleTasks.forEach((task) => map.set(task.id, task));
+    return map;
+  }, [eligibleTasks]);
+
+  const deliverableOptionsById = useMemo(() => {
+    const map = new Map<number, EligibleDeliverableOption>();
+    eligibleDeliverables.forEach((deliverable) => map.set(deliverable.id, deliverable));
+    return map;
+  }, [eligibleDeliverables]);
+
   const handleEligibleEngagementSelect = (id: number) => {
     const selected = eligibleEngagements.find((item) => item.id === id);
     if (!selected) return;
@@ -153,9 +184,11 @@ const EngagementManager = () => {
   const updateTaskAt = (index: number, value: string) => {
     setForm((prev) => {
       const tasks = [...prev.tasks];
+      const matchedId = matchEligibleId(value, eligibleTasks);
+      const matchedOption = matchedId ? taskOptionsById.get(matchedId) : undefined;
       tasks[index] = {
-        label: value,
-        eligible_task_id: matchEligibleId(value, eligibleTasks),
+        label: matchedOption?.display_label ?? value,
+        eligible_task_id: matchedId,
       };
       return { ...prev, tasks };
     });
@@ -164,9 +197,11 @@ const EngagementManager = () => {
   const updateDeliverableAt = (index: number, value: string) => {
     setForm((prev) => {
       const deliverables = [...prev.deliverables];
+      const matchedId = matchEligibleId(value, eligibleDeliverables);
+      const matchedOption = matchedId ? deliverableOptionsById.get(matchedId) : undefined;
       deliverables[index] = {
-        label: value,
-        eligible_deliverable_id: matchEligibleId(value, eligibleDeliverables),
+        label: matchedOption?.display_label ?? value,
+        eligible_deliverable_id: matchedId,
       };
       return { ...prev, deliverables };
     });
@@ -205,17 +240,33 @@ const EngagementManager = () => {
     engagement_name: form.engagement_name.trim(),
     eligible_engagement_id: form.eligible_engagement_id,
     tasks: form.tasks
-      .map((task) => ({
-        label: task.label.trim(),
-        eligible_task_id: task.label.trim() ? task.eligible_task_id : null,
-      }))
-      .filter((task) => task.label.length > 0),
+      .map((task) => {
+        const trimmed = task.label.trim();
+        if (!trimmed) {
+          return null;
+        }
+        const option = task.eligible_task_id ? taskOptionsById.get(task.eligible_task_id) : undefined;
+        return {
+          label: option?.label ?? trimmed,
+          eligible_task_id: option ? task.eligible_task_id : null,
+        };
+      })
+      .filter((task): task is { label: string; eligible_task_id: number | null } => task !== null),
     deliverables: form.deliverables
-      .map((deliverable) => ({
-        label: deliverable.label.trim(),
-        eligible_deliverable_id: deliverable.label.trim() ? deliverable.eligible_deliverable_id : null,
-      }))
-      .filter((deliverable) => deliverable.label.length > 0),
+      .map((deliverable) => {
+        const trimmed = deliverable.label.trim();
+        if (!trimmed) {
+          return null;
+        }
+        const option = deliverable.eligible_deliverable_id
+          ? deliverableOptionsById.get(deliverable.eligible_deliverable_id)
+          : undefined;
+        return {
+          label: option?.label ?? trimmed,
+          eligible_deliverable_id: option ? deliverable.eligible_deliverable_id : null,
+        };
+      })
+      .filter((deliverable): deliverable is { label: string; eligible_deliverable_id: number | null } => deliverable !== null),
   });
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -260,14 +311,22 @@ const EngagementManager = () => {
       engagement_code: engagement.engagement_code,
       engagement_name: engagement.engagement_name,
       eligible_engagement_id: engagement.eligible_engagement_id,
-      tasks: engagement.tasks.map((task) => ({
-        label: task.label,
-        eligible_task_id: task.eligible_task_id,
-      })),
-      deliverables: engagement.deliverables.map((deliverable) => ({
-        label: deliverable.label,
-        eligible_deliverable_id: deliverable.eligible_deliverable_id,
-      })),
+      tasks: engagement.tasks.map((task) => {
+        const option = task.eligible_task_id ? taskOptionsById.get(task.eligible_task_id) : undefined;
+        return {
+          label: option?.display_label ?? task.label,
+          eligible_task_id: task.eligible_task_id,
+        };
+      }),
+      deliverables: engagement.deliverables.map((deliverable) => {
+        const option = deliverable.eligible_deliverable_id
+          ? deliverableOptionsById.get(deliverable.eligible_deliverable_id)
+          : undefined;
+        return {
+          label: option?.display_label ?? deliverable.label,
+          eligible_deliverable_id: deliverable.eligible_deliverable_id,
+        };
+      }),
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -515,9 +574,12 @@ const EngagementManager = () => {
                   <div className="mt-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tarefas</p>
                     <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                      {engagement.tasks.map((task) => (
-                        <li key={`task-${engagement.id}-${task.id}`}>{task.label}</li>
-                      ))}
+                      {engagement.tasks.map((task) => {
+                        const option = task.eligible_task_id ? taskOptionsById.get(task.eligible_task_id) : undefined;
+                        return (
+                          <li key={`task-${engagement.id}-${task.id}`}>{option?.display_label ?? task.label}</li>
+                        );
+                      })}
                     </ul>
                   </div>
                 )}
@@ -526,9 +588,14 @@ const EngagementManager = () => {
                   <div className="mt-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Deliverables</p>
                     <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                      {engagement.deliverables.map((deliverable) => (
-                        <li key={`deliverable-${engagement.id}-${deliverable.id}`}>{deliverable.label}</li>
-                      ))}
+                      {engagement.deliverables.map((deliverable) => {
+                        const option = deliverable.eligible_deliverable_id
+                          ? deliverableOptionsById.get(deliverable.eligible_deliverable_id)
+                          : undefined;
+                        return (
+                          <li key={`deliverable-${engagement.id}-${deliverable.id}`}>{option?.display_label ?? deliverable.label}</li>
+                        );
+                      })}
                     </ul>
                   </div>
                 )}
@@ -540,13 +607,13 @@ const EngagementManager = () => {
 
       <datalist id="eligible-tasks-list">
         {eligibleTasks.map((task) => (
-          <option key={`task-option-${task.id}`} value={task.label} />
+          <option key={`task-option-${task.id}`} value={task.display_label} />
         ))}
       </datalist>
 
       <datalist id="eligible-deliverables-list">
         {eligibleDeliverables.map((deliverable) => (
-          <option key={`deliverable-option-${deliverable.id}`} value={deliverable.label} />
+          <option key={`deliverable-option-${deliverable.id}`} value={deliverable.display_label} />
         ))}
       </datalist>
     </div>

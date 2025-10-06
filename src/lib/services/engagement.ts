@@ -1,3 +1,6 @@
+import { DELIVERABLE_PERIODICITIES } from "@/lib/engagement/catalog";
+import type { DeliverablePeriodicity, EligibleDeliverableInput, EligibleTaskInput } from "@/lib/engagement/catalog";
+
 
 export interface EligibleEngagement {
   id: number;
@@ -7,9 +10,19 @@ export interface EligibleEngagement {
   updated_at: string;
 }
 
-export interface EligibleItem {
+export interface EligibleTask {
+  id: number;
+  macroprocess: string;
+  process: string;
+  label: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EligibleDeliverable {
   id: number;
   label: string;
+  periodicity: DeliverablePeriodicity;
   created_at: string;
   updated_at: string;
 }
@@ -76,13 +89,62 @@ export class EngagementService {
     };
   }
 
-  private static mapEligibleItem(row: any): EligibleItem {
+  private static mapEligibleTask(row: any): EligibleTask {
     return {
       id: row.id,
+      macroprocess: row.macroprocess,
+      process: row.process,
       label: row.label,
       created_at: row.created_at,
       updated_at: row.updated_at,
     };
+  }
+
+  private static mapEligibleDeliverable(row: any): EligibleDeliverable {
+    const periodicity = (row.periodicity ?? "not_applicable") as DeliverablePeriodicity;
+    return {
+      id: row.id,
+      label: row.label,
+      periodicity,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    };
+  }
+
+  private async getEligibleEngagementById(
+    id: number,
+    db: DatabaseExecutor = this.DB,
+  ): Promise<EligibleEngagement | null> {
+    const row = await db.prepare(
+      "SELECT * FROM eligible_engagements WHERE id = ?",
+    )
+      .bind(id)
+      .first();
+    return row ? EngagementService.mapEligibleEngagement(row) : null;
+  }
+
+  private async getEligibleTaskById(
+    id: number,
+    db: DatabaseExecutor = this.DB,
+  ): Promise<EligibleTask | null> {
+    const row = await db.prepare(
+      "SELECT * FROM eligible_tasks WHERE id = ?",
+    )
+      .bind(id)
+      .first();
+    return row ? EngagementService.mapEligibleTask(row) : null;
+  }
+
+  private async getEligibleDeliverableById(
+    id: number,
+    db: DatabaseExecutor = this.DB,
+  ): Promise<EligibleDeliverable | null> {
+    const row = await db.prepare(
+      "SELECT * FROM eligible_deliverables WHERE id = ?",
+    )
+      .bind(id)
+      .first();
+    return row ? EngagementService.mapEligibleDeliverable(row) : null;
   }
 
   private async withTransaction<T>(callback: (db: DatabaseExecutor) => Promise<T>): Promise<T> {
@@ -126,48 +188,6 @@ export class EngagementService {
     return EngagementService.mapEligibleEngagement(row);
   }
 
-  async upsertEligibleTask(label: string, db: DatabaseExecutor = this.DB): Promise<EligibleItem> {
-    const normalizedLabel = normalizeText(label);
-    if (!normalizedLabel) {
-      throw new Error("Task label is required");
-    }
-
-    await db.prepare("INSERT OR IGNORE INTO eligible_tasks (label) VALUES (?)")
-      .bind(normalizedLabel)
-      .run();
-
-    const row = await db.prepare("SELECT * FROM eligible_tasks WHERE label = ?")
-      .bind(normalizedLabel)
-      .first();
-
-    if (!row) {
-      throw new Error("Failed to load eligible task");
-    }
-
-    return EngagementService.mapEligibleItem(row);
-  }
-
-  async upsertEligibleDeliverable(label: string, db: DatabaseExecutor = this.DB): Promise<EligibleItem> {
-    const normalizedLabel = normalizeText(label);
-    if (!normalizedLabel) {
-      throw new Error("Deliverable label is required");
-    }
-
-    await db.prepare("INSERT OR IGNORE INTO eligible_deliverables (label) VALUES (?)")
-      .bind(normalizedLabel)
-      .run();
-
-    const row = await db.prepare("SELECT * FROM eligible_deliverables WHERE label = ?")
-      .bind(normalizedLabel)
-      .first();
-
-    if (!row) {
-      throw new Error("Failed to load eligible deliverable");
-    }
-
-    return EngagementService.mapEligibleItem(row);
-  }
-
   async searchEligibleEngagements(query?: string, limit = 20): Promise<EligibleEngagement[]> {
     const normalizedQuery = normalizeText(query ?? "");
     const statement = normalizedQuery
@@ -186,36 +206,354 @@ export class EngagementService {
     return response.results.map(EngagementService.mapEligibleEngagement);
   }
 
-  async searchEligibleTasks(query?: string, limit = 20): Promise<EligibleItem[]> {
+  async searchEligibleTasks(query?: string, limit = 20): Promise<EligibleTask[]> {
     const normalizedQuery = normalizeText(query ?? "");
-    const statement = normalizedQuery
+    const hasSearch = normalizedQuery.length > 0;
+    const lowered = normalizedQuery.toLowerCase();
+    const like = `%${lowered}%`;
+    const statement = hasSearch
       ? this.DB.prepare(
-          "SELECT * FROM eligible_tasks WHERE label LIKE ? ORDER BY label LIMIT ?",
-        ).bind(`%${normalizedQuery}%`, limit)
-      : this.DB.prepare("SELECT * FROM eligible_tasks ORDER BY label LIMIT ?").bind(limit);
+          "SELECT * FROM eligible_tasks WHERE LOWER(macroprocess) LIKE ? OR LOWER(process) LIKE ? OR LOWER(label) LIKE ? ORDER BY macroprocess, process, label LIMIT ?",
+        ).bind(like, like, like, limit)
+      : this.DB.prepare(
+          "SELECT * FROM eligible_tasks ORDER BY macroprocess, process, label LIMIT ?",
+        ).bind(limit);
 
     const response = await statement.all();
     if (!response.success) {
       throw new Error("Failed to load eligible tasks");
     }
 
-    return response.results.map(EngagementService.mapEligibleItem);
+    return response.results.map(EngagementService.mapEligibleTask);
   }
 
-  async searchEligibleDeliverables(query?: string, limit = 20): Promise<EligibleItem[]> {
+  async searchEligibleDeliverables(query?: string, limit = 20): Promise<EligibleDeliverable[]> {
     const normalizedQuery = normalizeText(query ?? "");
-    const statement = normalizedQuery
+    const hasSearch = normalizedQuery.length > 0;
+    const lowered = normalizedQuery.toLowerCase();
+    const like = `%${lowered}%`;
+    const statement = hasSearch
       ? this.DB.prepare(
-          "SELECT * FROM eligible_deliverables WHERE label LIKE ? ORDER BY label LIMIT ?",
-        ).bind(`%${normalizedQuery}%`, limit)
-      : this.DB.prepare("SELECT * FROM eligible_deliverables ORDER BY label LIMIT ?").bind(limit);
+          "SELECT * FROM eligible_deliverables WHERE LOWER(label) LIKE ? OR LOWER(periodicity) LIKE ? ORDER BY label LIMIT ?",
+        ).bind(like, like, limit)
+      : this.DB.prepare(
+          "SELECT * FROM eligible_deliverables ORDER BY label LIMIT ?",
+        ).bind(limit);
 
     const response = await statement.all();
     if (!response.success) {
       throw new Error("Failed to load eligible deliverables");
     }
 
-    return response.results.map(EngagementService.mapEligibleItem);
+    return response.results.map(EngagementService.mapEligibleDeliverable);
+  }
+
+
+  async listEligibleEngagements(): Promise<EligibleEngagement[]> {
+    const response = await this.DB.prepare(
+      "SELECT * FROM eligible_engagements ORDER BY engagement_name",
+    ).all();
+
+    if (!response.success) {
+      throw new Error("Failed to load eligible engagements");
+    }
+
+    return response.results.map(EngagementService.mapEligibleEngagement);
+  }
+
+  async createEligibleEngagement(input: { engagement_code: string; engagement_name: string }): Promise<EligibleEngagement> {
+    const code = normalizeText(input.engagement_code);
+    const name = normalizeText(input.engagement_name);
+    if (!code || !name) {
+      throw new Error("Engagement code and name are required");
+    }
+
+    const existing = await this.DB.prepare(
+      "SELECT id FROM eligible_engagements WHERE LOWER(engagement_code) = LOWER(?)",
+    )
+      .bind(code)
+      .first();
+    if (existing) {
+      throw new Error("Eligible engagement already exists");
+    }
+
+    const result = await this.DB.prepare(
+      "INSERT INTO eligible_engagements (engagement_code, engagement_name) VALUES (?, ?)",
+    )
+      .bind(code, name)
+      .run();
+    if (!result.success) {
+      throw new Error("Failed to create eligible engagement");
+    }
+
+    const created = await this.getEligibleEngagementById(result.meta.last_row_id);
+    if (!created) {
+      throw new Error("Failed to load created eligible engagement");
+    }
+    return created;
+  }
+
+  async updateEligibleEngagement(
+    id: number,
+    input: { engagement_code: string; engagement_name: string },
+  ): Promise<EligibleEngagement> {
+    const existing = await this.getEligibleEngagementById(id);
+    if (!existing) {
+      throw new Error("Eligible engagement not found");
+    }
+
+    const code = normalizeText(input.engagement_code);
+    const name = normalizeText(input.engagement_name);
+    if (!code || !name) {
+      throw new Error("Engagement code and name are required");
+    }
+
+    const duplicate = await this.DB.prepare(
+      "SELECT id FROM eligible_engagements WHERE LOWER(engagement_code) = LOWER(?) AND id != ?",
+    )
+      .bind(code, id)
+      .first();
+    if (duplicate) {
+      throw new Error("Eligible engagement already exists");
+    }
+
+    const response = await this.DB.prepare(
+      "UPDATE eligible_engagements SET engagement_code = ?, engagement_name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+    )
+      .bind(code, name, id)
+      .run();
+    if (!response.success) {
+      throw new Error("Failed to update eligible engagement");
+    }
+
+    const updated = await this.getEligibleEngagementById(id);
+    if (!updated) {
+      throw new Error("Failed to load updated eligible engagement");
+    }
+    return updated;
+  }
+
+  async deleteEligibleEngagement(id: number): Promise<void> {
+    const response = await this.DB.prepare(
+      "DELETE FROM eligible_engagements WHERE id = ?",
+    )
+      .bind(id)
+      .run();
+
+    if (!response.success) {
+      throw new Error("Failed to delete eligible engagement");
+    }
+
+    const changes = response.meta?.changes ?? 0;
+    if (changes === 0) {
+      throw new Error("Eligible engagement not found");
+    }
+  }
+
+  async listEligibleTasks(): Promise<EligibleTask[]> {
+    const response = await this.DB.prepare(
+      "SELECT * FROM eligible_tasks ORDER BY macroprocess, process, label",
+    ).all();
+
+    if (!response.success) {
+      throw new Error("Failed to load eligible tasks");
+    }
+
+    return response.results.map(EngagementService.mapEligibleTask);
+  }
+
+  async createEligibleTask(input: EligibleTaskInput): Promise<EligibleTask> {
+    const macroprocess = normalizeText(input.macroprocess);
+    const process = normalizeText(input.process);
+    const label = normalizeText(input.label);
+    if (!macroprocess || !process || !label) {
+      throw new Error("Macroprocess, process and task label are required");
+    }
+
+    const duplicate = await this.DB.prepare(
+      "SELECT id FROM eligible_tasks WHERE LOWER(macroprocess) = LOWER(?) AND LOWER(process) = LOWER(?) AND LOWER(label) = LOWER(?)",
+    )
+      .bind(macroprocess, process, label)
+      .first();
+    if (duplicate) {
+      throw new Error("Eligible task already exists");
+    }
+
+    const result = await this.DB.prepare(
+      "INSERT INTO eligible_tasks (macroprocess, process, label) VALUES (?, ?, ?)",
+    )
+      .bind(macroprocess, process, label)
+      .run();
+    if (!result.success) {
+      throw new Error("Failed to create eligible task");
+    }
+
+    const created = await this.getEligibleTaskById(result.meta.last_row_id);
+    if (!created) {
+      throw new Error("Failed to load created eligible task");
+    }
+    return created;
+  }
+
+  async updateEligibleTask(id: number, input: EligibleTaskInput): Promise<EligibleTask> {
+    const existing = await this.getEligibleTaskById(id);
+    if (!existing) {
+      throw new Error("Eligible task not found");
+    }
+
+    const macroprocess = normalizeText(input.macroprocess);
+    const process = normalizeText(input.process);
+    const label = normalizeText(input.label);
+    if (!macroprocess || !process || !label) {
+      throw new Error("Macroprocess, process and task label are required");
+    }
+
+    const duplicate = await this.DB.prepare(
+      "SELECT id FROM eligible_tasks WHERE LOWER(macroprocess) = LOWER(?) AND LOWER(process) = LOWER(?) AND LOWER(label) = LOWER(?) AND id != ?",
+    )
+      .bind(macroprocess, process, label, id)
+      .first();
+    if (duplicate) {
+      throw new Error("Eligible task already exists");
+    }
+
+    const response = await this.DB.prepare(
+      "UPDATE eligible_tasks SET macroprocess = ?, process = ?, label = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+    )
+      .bind(macroprocess, process, label, id)
+      .run();
+    if (!response.success) {
+      throw new Error("Failed to update eligible task");
+    }
+
+    const updated = await this.getEligibleTaskById(id);
+    if (!updated) {
+      throw new Error("Failed to load updated eligible task");
+    }
+    return updated;
+  }
+
+  async deleteEligibleTask(id: number): Promise<void> {
+    const response = await this.DB.prepare(
+      "DELETE FROM eligible_tasks WHERE id = ?",
+    )
+      .bind(id)
+      .run();
+
+    if (!response.success) {
+      throw new Error("Failed to delete eligible task");
+    }
+
+    const changes = response.meta?.changes ?? 0;
+    if (changes === 0) {
+      throw new Error("Eligible task not found");
+    }
+  }
+
+  async listEligibleDeliverables(): Promise<EligibleDeliverable[]> {
+    const response = await this.DB.prepare(
+      "SELECT * FROM eligible_deliverables ORDER BY label",
+    ).all();
+
+    if (!response.success) {
+      throw new Error("Failed to load eligible deliverables");
+    }
+
+    return response.results.map(EngagementService.mapEligibleDeliverable);
+  }
+
+  private ensureValidPeriodicity(periodicity: DeliverablePeriodicity) {
+    if (!DELIVERABLE_PERIODICITIES.includes(periodicity)) {
+      throw new Error("Invalid deliverable periodicity");
+    }
+  }
+
+  async createEligibleDeliverable(input: EligibleDeliverableInput): Promise<EligibleDeliverable> {
+    const label = normalizeText(input.label);
+    const periodicity = input.periodicity;
+    if (!label) {
+      throw new Error("Deliverable label is required");
+    }
+    this.ensureValidPeriodicity(periodicity);
+
+    const duplicate = await this.DB.prepare(
+      "SELECT id FROM eligible_deliverables WHERE LOWER(label) = LOWER(?) AND periodicity = ?",
+    )
+      .bind(label, periodicity)
+      .first();
+    if (duplicate) {
+      throw new Error("Eligible deliverable already exists");
+    }
+
+    const result = await this.DB.prepare(
+      "INSERT INTO eligible_deliverables (label, periodicity) VALUES (?, ?)",
+    )
+      .bind(label, periodicity)
+      .run();
+    if (!result.success) {
+      throw new Error("Failed to create eligible deliverable");
+    }
+
+    const created = await this.getEligibleDeliverableById(result.meta.last_row_id);
+    if (!created) {
+      throw new Error("Failed to load created eligible deliverable");
+    }
+    return created;
+  }
+
+  async updateEligibleDeliverable(id: number, input: EligibleDeliverableInput): Promise<EligibleDeliverable> {
+    const existing = await this.getEligibleDeliverableById(id);
+    if (!existing) {
+      throw new Error("Eligible deliverable not found");
+    }
+
+    const label = normalizeText(input.label);
+    const periodicity = input.periodicity;
+    if (!label) {
+      throw new Error("Deliverable label is required");
+    }
+    this.ensureValidPeriodicity(periodicity);
+
+    const duplicate = await this.DB.prepare(
+      "SELECT id FROM eligible_deliverables WHERE LOWER(label) = LOWER(?) AND periodicity = ? AND id != ?",
+    )
+      .bind(label, periodicity, id)
+      .first();
+    if (duplicate) {
+      throw new Error("Eligible deliverable already exists");
+    }
+
+    const response = await this.DB.prepare(
+      "UPDATE eligible_deliverables SET label = ?, periodicity = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+    )
+      .bind(label, periodicity, id)
+      .run();
+    if (!response.success) {
+      throw new Error("Failed to update eligible deliverable");
+    }
+
+    const updated = await this.getEligibleDeliverableById(id);
+    if (!updated) {
+      throw new Error("Failed to load updated eligible deliverable");
+    }
+    return updated;
+  }
+
+  async deleteEligibleDeliverable(id: number): Promise<void> {
+    const response = await this.DB.prepare(
+      "DELETE FROM eligible_deliverables WHERE id = ?",
+    )
+      .bind(id)
+      .run();
+
+    if (!response.success) {
+      throw new Error("Failed to delete eligible deliverable");
+    }
+
+    const changes = response.meta?.changes ?? 0;
+    if (changes === 0) {
+      throw new Error("Eligible deliverable not found");
+    }
   }
 
   private async loadEngagementTasks(
@@ -292,17 +630,16 @@ export class EngagementService {
       if (!label) {
         continue;
       }
-      const eligible = task.eligible_task_id
-        ? { id: task.eligible_task_id }
-        : await this.upsertEligibleTask(label, db);
+      const eligibleId = task.eligible_task_id ?? null;
 
       await db.prepare(
         "INSERT INTO manager_engagement_tasks (manager_engagement_id, label, eligible_task_id) VALUES (?, ?, ?)",
       )
-        .bind(engagementId, label, eligible.id)
+        .bind(engagementId, label, eligibleId)
         .run();
     }
   }
+
 
   private async replaceDeliverables(
     db: DatabaseExecutor,
@@ -318,14 +655,12 @@ export class EngagementService {
       if (!label) {
         continue;
       }
-      const eligible = deliverable.eligible_deliverable_id
-        ? { id: deliverable.eligible_deliverable_id }
-        : await this.upsertEligibleDeliverable(label, db);
+      const eligibleId = deliverable.eligible_deliverable_id ?? null;
 
       await db.prepare(
         "INSERT INTO manager_engagement_deliverables (manager_engagement_id, label, eligible_deliverable_id) VALUES (?, ?, ?)",
       )
-        .bind(engagementId, label, eligible.id)
+        .bind(engagementId, label, eligibleId)
         .run();
     }
   }

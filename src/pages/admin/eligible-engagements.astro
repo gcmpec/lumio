@@ -1,0 +1,15 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import EligibleEngagementsManager from "@/components/admin/EligibleEngagementsManager";
+
+if (Astro.locals.user?.rank !== "Admin") {
+  return Astro.redirect("/app");
+}
+---
+
+<Layout title="Engagements elegiveis">
+  <p class="text-sm text-muted-foreground">
+    Gere a lista de engagements sugeridos para os managers reutilizarem ao configurar novos projetos.
+  </p>
+  <EligibleEngagementsManager client:load />
+</Layout>

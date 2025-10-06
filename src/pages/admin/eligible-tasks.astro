@@ -1,0 +1,15 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import EligibleTasksManager from "@/components/admin/EligibleTasksManager";
+
+if (Astro.locals.user?.rank !== "Admin") {
+  return Astro.redirect("/app");
+}
+---
+
+<Layout title="Tarefas elegiveis">
+  <p class="text-sm text-muted-foreground">
+    Mantem a lista de tarefas elegiveis organizada por macroprocesso e processo para acelerar a configura��o dos engagements.
+  </p>
+  <EligibleTasksManager client:load />
+</Layout>

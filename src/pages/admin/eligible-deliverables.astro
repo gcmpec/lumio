@@ -1,0 +1,15 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import EligibleDeliverablesManager from "@/components/admin/EligibleDeliverablesManager";
+
+if (Astro.locals.user?.rank !== "Admin") {
+  return Astro.redirect("/app");
+}
+---
+
+<Layout title="Deliverables elegiveis">
+  <p class="text-sm text-muted-foreground">
+    Define os deliverables padrao e a respetiva periodicidade para que os managers os possam selecionar rapidamente.
+  </p>
+  <EligibleDeliverablesManager client:load />
+</Layout>
