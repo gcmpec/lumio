@@ -52,6 +52,7 @@ export interface ManagerEngagementDeliverable {
   manager_engagement_id: number;
   label: string;
   eligible_deliverable_id: number | null;
+  periodicity: DeliverablePeriodicity | null;
   created_at: string;
   updated_at: string;
 }
@@ -791,34 +792,87 @@ export class EngagementService {
   }
 
   private async loadEngagementDeliverables(
+
     engagementIds: number[],
+
     db: DatabaseExecutor = this.DB,
+
   ): Promise<Record<number, ManagerEngagementDeliverable[]>> {
+
     if (!engagementIds.length) {
+
       return {};
+
     }
 
-    const placeholders = engagementIds.map(() => "?").join(", ");
+
+    const placeholders = engagementIds.map(() => "?").join(", " );
+
     const statement = db.prepare(
-      `SELECT * FROM manager_engagement_deliverables WHERE manager_engagement_id IN (${placeholders}) ORDER BY id`,
+
+      `
+        SELECT
+          med.id,
+          med.manager_engagement_id,
+          med.label,
+          med.eligible_deliverable_id,
+          med.created_at,
+          med.updated_at,
+          ed.periodicity AS periodicity
+        FROM manager_engagement_deliverables med
+        LEFT JOIN eligible_deliverables ed ON ed.id = med.eligible_deliverable_id
+        WHERE med.manager_engagement_id IN (${placeholders})
+        ORDER BY med.id
+      `,
+
     ).bind(...engagementIds);
 
+
     const response = await statement.all();
+
     if (!response.success) {
+
       throw new Error("Failed to load engagement deliverables");
+
     }
+
 
     const map: Record<number, ManagerEngagementDeliverable[]> = {};
+
     for (const row of response.results) {
-      const deliverable = row as ManagerEngagementDeliverable;
-      if (!map[deliverable.manager_engagement_id]) {
-        map[deliverable.manager_engagement_id] = [];
+
+      const managerEngagementId = Number(row.manager_engagement_id);
+
+      const periodicityRaw =
+        typeof row.periodicity === "string" && row.periodicity.length > 0
+          ? (row.periodicity as DeliverablePeriodicity)
+          : null;
+
+      const deliverable: ManagerEngagementDeliverable = {
+        id: Number(row.id),
+        manager_engagement_id: managerEngagementId,
+        label: String(row.label),
+        eligible_deliverable_id: row.eligible_deliverable_id != null ? Number(row.eligible_deliverable_id) : null,
+        periodicity: periodicityRaw,
+        created_at: String(row.created_at),
+        updated_at: String(row.updated_at),
+      };
+
+      if (!map[managerEngagementId]) {
+
+        map[managerEngagementId] = [];
+
       }
-      map[deliverable.manager_engagement_id].push(deliverable);
+
+      map[managerEngagementId].push(deliverable);
+
     }
 
+
     return map;
+
   }
+
 
   private async replaceTasks(
     db: DatabaseExecutor,
@@ -1062,7 +1116,7 @@ export class EngagementService {
   }
 
   async listManagersWithEngagements(): Promise<Array<{ manager: { id: number; name: string; email: string }; engagements: ManagerEngagementRecord[] }>> {
-    const response = await db.prepare(
+    const response = await this.DB.prepare(
       "SELECT me.*, u.name as manager_name, u.email as manager_email FROM manager_engagements me JOIN users u ON u.id = me.manager_id ORDER BY u.name COLLATE NOCASE, me.engagement_name COLLATE NOCASE"
     ).all();
 

@@ -1,4 +1,4 @@
----
+﻿---
 import Layout from "@/layouts/Layout.astro";
 import { buttonVariants } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -6,33 +6,11 @@ import { Label } from "@/components/ui/label";
 const user = Astro.locals.user;
 ---
 
-<Layout title="Nova atividade">
-  <div class="space-y-10">
-    <section class="rounded-xl border bg-card p-6 shadow">
-      <h2 class="text-lg font-semibold">Os teus dados</h2>
-      {user ? (
-        <dl class="mt-4 grid gap-4 md:grid-cols-2 text-sm">
-          <div>
-            <dt class="text-muted-foreground">Nome</dt>
-            <dd class="font-medium">{user.name}</dd>
-          </div>
-          <div>
-            <dt class="text-muted-foreground">E-mail</dt>
-            <dd class="font-medium">{user.email}</dd>
-          </div>
-          <div>
-            <dt class="text-muted-foreground">Rank</dt>
-            <dd class="font-medium">{user.rank}</dd>
-          </div>
-        </dl>
-      ) : (
-        <p class="mt-4 text-sm text-muted-foreground">Não foi possível carregar os teus dados.</p>
-      )}
-    </section>
-
-    <section class="rounded-xl border bg-card p-6 shadow space-y-6">
+<Layout title="O meu trabalho">
+  <div class="grid gap-8 lg:grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)] xl:gap-12">
+    <section id="start-form-section" data-activity-card="form" class="rounded-xl border bg-card p-6 shadow space-y-6">
       <div>
-        <h2 class="text-xl font-semibold">Nova atividade</h2>
+        <h2 class="text-xl font-semibold">Iniciar atividade</h2>
         <p class="text-sm text-muted-foreground">Seleciona o manager, engagement e tarefa que vais executar.</p>
       </div>
       <form id="activity-form" class="space-y-4">
@@ -84,6 +62,17 @@ const user = Astro.locals.user;
         </div>
 
         <div class="space-y-2">
+          <Label htmlFor="deliverable-periodicity">Periodicidade</Label>
+          <select
+            id="deliverable-periodicity"
+            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled
+          >
+            <option value="">Seleciona um deliverable primeiro</option>
+          </select>
+        </div>
+
+        <div class="space-y-2">
           <div class="flex items-center gap-2">
             <input type="checkbox" id="is-review" class="h-4 w-4 rounded border border-input" />
             <Label htmlFor="is-review" class="text-sm font-medium">Revisão de trabalho realizado</Label>
@@ -110,52 +99,93 @@ const user = Astro.locals.user;
       </form>
     </section>
 
-    <section id="in-progress" class="hidden space-y-4 rounded-xl border border-dashed bg-card p-6 shadow">
-      <div class="flex items-start justify-between">
-        <div>
-          <h2 class="text-xl font-semibold">Atividade em curso</h2>
+    <div class="space-y-6">
+      <section
+        id="in-progress"
+        data-activity-card="active"
+        class="hidden space-y-4 rounded-xl border bg-card p-6 shadow transition-all"
+      >
+        <div class="flex flex-col gap-3">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <span
+                id="in-progress-indicator"
+                class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700"
+              >
+                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                EM CURSO
+              </span>
+              <h2 class="text-xl font-semibold">Atividade em curso</h2>
+            </div>
+            <span id="timer" class="text-3xl font-bold">00:00</span>
+          </div>
           <p class="text-sm text-muted-foreground">Mantém este separador aberto enquanto trabalhas.</p>
         </div>
-        <span id="timer" class="text-3xl font-bold">00:00</span>
-      </div>
 
-      <dl class="grid gap-4 md:grid-cols-2 text-sm">
-        <div>
-          <dt class="font-medium text-muted-foreground">Colaborador</dt>
-          <dd id="progress-user"></dd>
-        </div>
-        <div>
-          <dt class="font-medium text-muted-foreground">Manager</dt>
-          <dd id="progress-manager"></dd>
-        </div>
-        <div>
-          <dt class="font-medium text-muted-foreground">Engagement</dt>
-          <dd id="progress-engagement"></dd>
-        </div>
-        <div>
-          <dt class="font-medium text-muted-foreground">Tarefa</dt>
-          <dd id="progress-task"></dd>
-        </div>
-        <div>
-          <dt class="font-medium text-muted-foreground">Deliverable</dt>
-          <dd id="progress-deliverable"></dd>
-        </div>
-        <div>
-          <dt class="font-medium text-muted-foreground">Revisão</dt>
-          <dd id="progress-review"></dd>
-        </div>
-        <div>
-          <dt class="font-medium text-muted-foreground">Início</dt>
-          <dd id="progress-start"></dd>
-        </div>
-      </dl>
+        <dl class="grid gap-4 md:grid-cols-2 text-sm">
+          <div>
+            <dt class="font-medium text-muted-foreground">Colaborador</dt>
+            <dd id="progress-user"></dd>
+          </div>
+          <div>
+            <dt class="font-medium text-muted-foreground">Manager</dt>
+            <dd id="progress-manager"></dd>
+          </div>
+          <div>
+            <dt class="font-medium text-muted-foreground">Engagement</dt>
+            <dd id="progress-engagement"></dd>
+          </div>
+          <div>
+            <dt class="font-medium text-muted-foreground">Tarefa</dt>
+            <dd id="progress-task"></dd>
+          </div>
+          <div>
+            <dt class="font-medium text-muted-foreground">Deliverable</dt>
+            <dd id="progress-deliverable"></dd>
+          </div>
+          <div>
+            <dt class="font-medium text-muted-foreground">Revisão</dt>
+            <dd id="progress-review"></dd>
+          </div>
+          <div>
+            <dt class="font-medium text-muted-foreground">Início</dt>
+            <dd id="progress-start"></dd>
+          </div>
+        </dl>
 
-      <button id="stop-button" class={buttonVariants({ size: "lg", variant: "destructive" })}>
-        Parar atividade
-      </button>
-      <p id="stop-message" class="text-sm text-green-600 hidden"></p>
-    </section>
+        <button id="stop-button" class={buttonVariants({ size: "lg", variant: "destructive" })}>
+          Parar atividade
+        </button>
+        <p id="stop-message" class="text-sm text-green-600 hidden"></p>
+      </section>
+
+      <section
+        id="start-card"
+        data-activity-card="start"
+        class="rounded-xl border bg-card p-6 shadow-sm transition-opacity"
+      >
+        <div class="space-y-2">
+          <h2 class="text-lg font-semibold">Iniciar atividade</h2>
+          <p class="text-sm text-muted-foreground">Preenche o formulário para começares um novo trabalho.</p>
+        </div>
+      </section>
+
+      <section
+        id="resume-card"
+        data-activity-card="resume"
+        class="rounded-xl border bg-card p-6 shadow-sm transition-opacity"
+      >
+        <div class="space-y-2">
+          <h2 class="text-lg font-semibold">Retomar atividade</h2>
+          <p class="text-sm text-muted-foreground">Vê aqui as atividades pausadas e retoma quando quiseres.</p>
+        </div>
+        <div id="resume-content" class="space-y-3 text-sm text-muted-foreground">
+          <p>Não tens atividades pausadas.</p>
+        </div>
+      </section>
+    </div>
   </div>
+
 
   <script is:inline>
     const activityForm = document.getElementById('activity-form');
@@ -168,8 +198,30 @@ const user = Astro.locals.user;
     const engagementSelect = document.getElementById('engagement-select');
     const taskSelect = document.getElementById('task-select');
     const deliverableSelect = document.getElementById('deliverable-select');
+    const periodicitySelect = document.getElementById('deliverable-periodicity');
     const reviewCheckbox = document.getElementById('is-review');
     const reviewTargetWrapper = document.getElementById('review-target-wrapper');
+    const startSection = document.getElementById('start-form-section');
+    const startCard = document.getElementById('start-card');
+    const resumeCard = document.getElementById('resume-card');
+    const inProgressIndicator = document.getElementById('in-progress-indicator');
+    const inProgressIndicatorDot = inProgressIndicator ? inProgressIndicator.querySelector('span') : null;
+
+    const periodicityOptions = [
+      { value: 'daily', label: 'Diariamente' },
+      { value: 'weekly', label: 'Semanalmente' },
+      { value: 'monthly', label: 'Mensalmente' },
+      { value: 'bimonthly', label: 'Bimensalmente' },
+      { value: 'quarterly', label: 'Trimestralmente' },
+      { value: 'semiannual', label: 'Semestralmente' },
+      { value: 'annual', label: 'Anualmente' },
+      { value: 'not_applicable', label: 'N�o aplic�vel' },
+    ];
+    const periodicityLabelMap = periodicityOptions.reduce((accumulator, option) => {
+      accumulator[option.value] = option.label;
+      return accumulator;
+    }, {});
+    const availabilityTargets = [startSection, startCard, resumeCard].filter(Boolean);
 
     const progressFields = {
       user: document.getElementById('progress-user'),
@@ -243,10 +295,93 @@ const user = Astro.locals.user;
       select.value = '';
     };
 
+    const resetPeriodicitySelect = (placeholder = 'Seleciona um deliverable primeiro') => {
+      if (!periodicitySelect) return;
+      resetSelect(periodicitySelect, placeholder);
+      periodicitySelect.disabled = true;
+    };
+
+    const updatePeriodicityForDeliverable = (deliverable) => {
+      if (!periodicitySelect) {
+        return;
+      }
+
+      if (!deliverable) {
+        resetPeriodicitySelect('Seleciona o deliverable');
+        return;
+      }
+
+      const periodicity = deliverable.periodicity ?? null;
+      if (periodicity && periodicityLabelMap[periodicity]) {
+        resetSelect(periodicitySelect, 'Periodicidade definida pelo manager');
+        const periodicityOption = document.createElement('option');
+        periodicityOption.value = periodicity;
+        periodicityOption.textContent = periodicityLabelMap[periodicity];
+        periodicitySelect.appendChild(periodicityOption);
+        periodicitySelect.value = periodicity;
+        periodicitySelect.disabled = true;
+      } else {
+        resetSelect(periodicitySelect, 'Seleciona a periodicidade');
+        periodicityOptions.forEach((item) => {
+          const periodicityOption = document.createElement('option');
+          periodicityOption.value = item.value;
+          periodicityOption.textContent = item.label;
+          periodicitySelect.appendChild(periodicityOption);
+        });
+        periodicitySelect.disabled = false;
+      }
+    };
+
+    const getPeriodicityLabel = (value) => {
+      if (!value) {
+        return '';
+      }
+      return periodicityLabelMap[value] ?? value;
+    };
+
+    const setActivityState = (isActive) => {
+      availabilityTargets.forEach((element) => {
+        element.classList.toggle('pointer-events-none', isActive);
+        element.classList.toggle('opacity-50', isActive);
+        if (isActive) {
+          element.setAttribute('aria-disabled', 'true');
+        } else {
+          element.removeAttribute('aria-disabled');
+        }
+      });
+      if (inProgressIndicator) {
+        inProgressIndicator.classList.toggle('animate-pulse', isActive);
+      }
+      if (inProgressIndicatorDot) {
+        inProgressIndicatorDot.classList.toggle('animate-ping', isActive);
+      }
+    };
+
+    const getSelectedEngagement = () => {
+      const managerId = Number.parseInt(managerSelect.value, 10);
+      const engagementId = Number.parseInt(engagementSelect.value, 10);
+      if (!Number.isFinite(managerId) || !Number.isFinite(engagementId)) {
+        return null;
+      }
+      const managerEntry = managerData.find((item) => item.manager.id === managerId);
+      if (!managerEntry) {
+        return null;
+      }
+      const engagement = managerEntry.engagements.find((item) => item.id === engagementId);
+      if (!engagement) {
+        return null;
+      }
+      return { managerEntry, engagement };
+    };
+
+    resetPeriodicitySelect();
+    setActivityState(false);
+
     const populateManagers = () => {
       if (!managerData.length) {
-        resetSelect(managerSelect, 'Sem managers disponíveis');
+        resetSelect(managerSelect, 'Sem managers dispon�veis');
         managerSelect.disabled = true;
+        resetPeriodicitySelect('Sem deliverables configurados');
         return;
       }
       resetSelect(managerSelect, 'Seleciona o manager');
@@ -291,12 +426,14 @@ const user = Astro.locals.user;
         deliverableSelect.appendChild(option);
       });
       deliverableSelect.disabled = deliverables.length === 0;
+      resetPeriodicitySelect(deliverables.length ? 'Seleciona o deliverable' : 'Sem deliverables configurados');
     };
 
     managerSelect.addEventListener('change', () => {
       resetSelect(engagementSelect, 'Seleciona o engagement');
       resetSelect(taskSelect, 'Seleciona o engagement primeiro');
       resetSelect(deliverableSelect, 'Seleciona o engagement primeiro');
+      resetPeriodicitySelect('Seleciona um deliverable primeiro');
       engagementSelect.disabled = true;
       taskSelect.disabled = true;
       deliverableSelect.disabled = true;
@@ -315,20 +452,32 @@ const user = Astro.locals.user;
     engagementSelect.addEventListener('change', () => {
       resetSelect(taskSelect, 'Seleciona a tarefa');
       resetSelect(deliverableSelect, 'Seleciona o deliverable');
+      resetPeriodicitySelect('Seleciona o deliverable');
       taskSelect.disabled = true;
       deliverableSelect.disabled = true;
 
-      const managerId = Number.parseInt(managerSelect.value, 10);
-      const engagementId = Number.parseInt(engagementSelect.value, 10);
-      if (!Number.isFinite(managerId) || !Number.isFinite(engagementId)) {
+      const selection = getSelectedEngagement();
+      if (!selection) {
         return;
       }
-      const managerEntry = managerData.find((item) => item.manager.id === managerId);
-      if (!managerEntry) return;
-      const engagement = managerEntry.engagements.find((item) => item.id === engagementId);
-      if (!engagement) return;
+      const { engagement } = selection;
       populateTasks(engagement.tasks ?? []);
       populateDeliverables(engagement.deliverables ?? []);
+    });
+
+    deliverableSelect.addEventListener('change', () => {
+      const selection = getSelectedEngagement();
+      if (!selection) {
+        resetPeriodicitySelect('Seleciona um deliverable primeiro');
+        return;
+      }
+      const deliverableId = Number.parseInt(deliverableSelect.value, 10);
+      if (!Number.isFinite(deliverableId)) {
+        updatePeriodicityForDeliverable(null);
+        return;
+      }
+      const deliverable = selection.engagement.deliverables?.find((item) => item.id === deliverableId) ?? null;
+      updatePeriodicityForDeliverable(deliverable ?? null);
     });
 
     reviewCheckbox.addEventListener('change', () => {
@@ -348,15 +497,17 @@ const user = Astro.locals.user;
         const response = await fetch('/api/engagements/options');
         const payload = await response.json();
         if (!response.ok || !payload?.success) {
-          throw new Error(payload?.message || 'Não foi possível carregar as opções.');
+          throw new Error(payload?.message || 'N�o foi poss�vel carregar as op��es.');
         }
         managerData = payload.managers ?? [];
         populateManagers();
+        resetPeriodicitySelect();
         clearError();
       } catch (error) {
         managerData = [];
         populateManagers();
-        showError(error instanceof Error ? error.message : 'Não foi possível carregar os managers.');
+        resetPeriodicitySelect('Sem deliverables configurados');
+        showError(error instanceof Error ? error.message : 'N�o foi poss�vel carregar os managers.');
       }
     };
 
@@ -367,8 +518,13 @@ const user = Astro.locals.user;
       clearError();
       stopMessage.classList.add('hidden');
 
+      if (activeActivityId) {
+        showError('Termina ou pausa a atividade em curso antes de iniciar uma nova.');
+        return;
+      }
+
       if (!userName || !userEmail) {
-        showError('Não foi possível validar o utilizador. Termina sessão e volta a entrar.');
+        showError('N�o foi poss�vel validar o utilizador. Termina sess�o e volta a entrar.');
         return;
       }
 
@@ -376,6 +532,8 @@ const user = Astro.locals.user;
       const engagementId = Number.parseInt(engagementSelect.value, 10);
       const taskId = taskSelect.disabled || !taskSelect.value ? null : Number.parseInt(taskSelect.value, 10);
       const deliverableId = deliverableSelect.disabled || !deliverableSelect.value ? null : Number.parseInt(deliverableSelect.value, 10);
+      const periodicityValueRaw = periodicitySelect ? periodicitySelect.value.trim() : '';
+      const periodicityRequired = deliverableId !== null && periodicitySelect && !periodicitySelect.disabled;
       const isReview = reviewCheckbox.checked;
       const reviewTargetRadio = reviewCheckbox.checked
         ? reviewTargetWrapper.querySelector('input[name="review-target"]:checked')
@@ -387,10 +545,25 @@ const user = Astro.locals.user;
         return;
       }
 
-      if (isReview && !reviewTarget) {
-        showError('Seleciona se a revisão é a outro staff ou ao trabalho do GDS.');
+      if (periodicityRequired && !periodicityValueRaw) {
+        showError('Seleciona a periodicidade do deliverable.');
         return;
       }
+
+      if (isReview && !reviewTarget) {
+        showError('Seleciona se a revis�o � a outro staff ou ao trabalho do GDS.');
+        return;
+      }
+
+      const selection = getSelectedEngagement();
+      if (!selection) {
+        showError('Seleciona o manager e o engagement.');
+        return;
+      }
+
+      const { managerEntry, engagement } = selection;
+      const taskEntry = engagement.tasks?.find((item) => item.id === taskId) ?? null;
+      const deliverableEntry = engagement.deliverables?.find((item) => item.id === deliverableId) ?? null;
 
       try {
         const response = await fetch('/api/activities', {
@@ -407,39 +580,44 @@ const user = Astro.locals.user;
         });
         const result = await response.json();
         if (!response.ok || !result?.success) {
-          throw new Error(result?.message || 'Não foi possível iniciar a atividade.');
+          throw new Error(result?.message || 'N�o foi poss�vel iniciar a atividade.');
         }
 
         const { activity } = result;
         activeActivityId = activity.id;
         activityStartTimestamp = Date.parse(activity.started_at);
 
-        const managerEntry = managerData.find((item) => item.manager.id === managerId);
-        const engagementEntry = managerEntry?.engagements.find((item) => item.id === engagementId);
-        const taskEntry = engagementEntry?.tasks?.find((item) => item.id === taskId);
-        const deliverableEntry = engagementEntry?.deliverables?.find((item) => item.id === deliverableId);
+        const periodicityValueResolved = periodicityValueRaw || (deliverableEntry?.periodicity ?? '');
+        const periodicityLabel = getPeriodicityLabel(periodicityValueResolved);
 
         progressFields.user.textContent = `${userName} (${userEmail})`;
         progressFields.manager.textContent = managerEntry
           ? `${managerEntry.manager.name} (${managerEntry.manager.email})`
-          : 'Não indicado';
-        progressFields.engagement.textContent = engagementEntry
-          ? `${engagementEntry.engagement_code ? `[${engagementEntry.engagement_code}] ` : ''}${engagementEntry.engagement_name}`
-          : 'Não indicado';
-        progressFields.task.textContent = taskEntry?.label ?? 'Não selecionado';
-        progressFields.deliverable.textContent = deliverableEntry?.label ?? 'Não selecionado';
+          : 'N�o indicado';
+        progressFields.engagement.textContent = engagement
+          ? `${engagement.engagement_code ? `[${engagement.engagement_code}] ` : ''}${engagement.engagement_name}`
+          : 'N�o indicado';
+        const deliverableLabel = deliverableEntry?.label ?? 'N�o selecionado';
+        progressFields.task.textContent = taskEntry?.label ?? 'N�o selecionado';
+        progressFields.deliverable.textContent = periodicityLabel && deliverableEntry
+          ? `${deliverableLabel} (${periodicityLabel})`
+          : deliverableEntry
+            ? deliverableLabel
+            : 'N�o selecionado';
         progressFields.review.textContent = isReview
           ? `Sim (${reviewTarget === 'GDS' ? 'GDS' : 'Staff'})`
-          : 'Não';
+          : 'N�o';
         progressFields.start.textContent = formatLisbon(activity.started_at);
 
         inProgressSection.classList.remove('hidden');
+        setActivityState(true);
         startTimer();
         activityForm.reset();
+        updatePeriodicityForDeliverable(null);
         managerSelect.dispatchEvent(new Event('change'));
         reviewTargetWrapper.classList.add('hidden');
       } catch (error) {
-        showError(error instanceof Error ? error.message : 'Não foi possível iniciar a atividade.');
+        showError(error instanceof Error ? error.message : 'N�o foi poss�vel iniciar a atividade.');
       }
     });
 
@@ -457,13 +635,14 @@ const user = Astro.locals.user;
         const result = await response.json();
 
         if (!response.ok || !result?.success) {
-          throw new Error(result?.message || 'Não foi possível terminar a atividade.');
+          throw new Error(result?.message || 'N�o foi poss�vel terminar a atividade.');
         }
 
         resetTimer();
         inProgressSection.classList.add('hidden');
         activeActivityId = null;
         activityStartTimestamp = null;
+        setActivityState(false);
 
         const endedAt = result.activity.ended_at;
         const durationSeconds = result.activity.duration_seconds;
@@ -476,12 +655,16 @@ const user = Astro.locals.user;
           ? `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
           : `${String(remainingMinutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-        stopMessage.textContent = `Atividade concluída às ${formatLisbon(endedAt)} (duração: ${formattedDuration}).`;
+        stopMessage.textContent = `Atividade conclu�da �s ${formatLisbon(endedAt)} (dura��o: ${formattedDuration}).`;
         stopMessage.classList.remove('hidden');
         setTimeout(() => stopMessage.classList.add('hidden'), 4000);
       } catch (error) {
-        showError(error instanceof Error ? error.message : 'Não foi possível terminar a atividade.');
+        showError(error instanceof Error ? error.message : 'N�o foi poss�vel terminar a atividade.');
       }
     });
   </script>
+
 </Layout>
+
+
+
