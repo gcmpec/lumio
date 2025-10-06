@@ -1163,8 +1163,12 @@ export class EngagementService {
     return Array.from(grouped.values());
   }
 
-  async deleteManagerEngagement(managerId: number, engagementId: number): Promise<void> {
-    const response = await db.prepare(
+  async deleteManagerEngagement(
+    managerId: number,
+    engagementId: number,
+    db: DatabaseExecutor = this.DB,
+  ): Promise<void> {
+    const response = await db.prepare(
       "DELETE FROM manager_engagements WHERE id = ? AND manager_id = ?",
     )
       .bind(engagementId, managerId)

@@ -233,8 +233,8 @@ const user = Astro.locals.user;
       start: document.getElementById('progress-start'),
     };
 
-    const userName = {JSON.stringify(user?.name ?? '')};
-    const userEmail = {JSON.stringify(user?.email ?? '')};
+    const userName = ${JSON.stringify(user?.name ?? '')};
+    const userEmail = ${JSON.stringify(user?.email ?? '')};
 
     let managerData = [];
     let activeActivityId = null;
