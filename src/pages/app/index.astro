@@ -215,7 +215,7 @@ const user = Astro.locals.user;
       { value: 'quarterly', label: 'Trimestralmente' },
       { value: 'semiannual', label: 'Semestralmente' },
       { value: 'annual', label: 'Anualmente' },
-      { value: 'not_applicable', label: 'N�o aplic�vel' },
+      { value: 'not_applicable', label: 'Não aplicável' },
     ];
     const periodicityLabelMap = periodicityOptions.reduce((accumulator, option) => {
       accumulator[option.value] = option.label;
@@ -233,8 +233,8 @@ const user = Astro.locals.user;
       start: document.getElementById('progress-start'),
     };
 
-    const userName = JSON.stringify(user?.name ?? '');
-    const userEmail = JSON.stringify(user?.email ?? '');
+    const userName = ${JSON.stringify(user?.name ?? '')};
+    const userEmail = ${JSON.stringify(user?.email ?? '')};
 
     let managerData = [];
     let activeActivityId = null;
@@ -497,7 +497,7 @@ const user = Astro.locals.user;
         const response = await fetch('/api/engagements/options');
         const payload = await response.json();
         if (!response.ok || !payload?.success) {
-          throw new Error(payload?.message || 'N�o foi poss�vel carregar as op��es.');
+          throw new Error(payload?.message || 'Não foi possível carregar as op��es.');
         }
         managerData = payload.managers ?? [];
         populateManagers();
@@ -507,7 +507,7 @@ const user = Astro.locals.user;
         managerData = [];
         populateManagers();
         resetPeriodicitySelect('Sem deliverables configurados');
-        showError(error instanceof Error ? error.message : 'N�o foi poss�vel carregar os managers.');
+        showError(error instanceof Error ? error.message : 'Não foi possível carregar os managers.');
       }
     };
 
@@ -524,7 +524,7 @@ const user = Astro.locals.user;
       }
 
       if (!userName || !userEmail) {
-        showError('N�o foi poss�vel validar o utilizador. Termina sess�o e volta a entrar.');
+        showError('Não foi possível validar o utilizador. Termina sessão e volta a entrar.');
         return;
       }
 
@@ -580,7 +580,7 @@ const user = Astro.locals.user;
         });
         const result = await response.json();
         if (!response.ok || !result?.success) {
-          throw new Error(result?.message || 'N�o foi poss�vel iniciar a atividade.');
+          throw new Error(result?.message || 'Não foi possível iniciar a atividade.');
         }
 
         const { activity } = result;
@@ -593,20 +593,20 @@ const user = Astro.locals.user;
         progressFields.user.textContent = `${userName} (${userEmail})`;
         progressFields.manager.textContent = managerEntry
           ? `${managerEntry.manager.name} (${managerEntry.manager.email})`
-          : 'N�o indicado';
+          : 'Não indicado';
         progressFields.engagement.textContent = engagement
           ? `${engagement.engagement_code ? `[${engagement.engagement_code}] ` : ''}${engagement.engagement_name}`
-          : 'N�o indicado';
-        const deliverableLabel = deliverableEntry?.label ?? 'N�o selecionado';
-        progressFields.task.textContent = taskEntry?.label ?? 'N�o selecionado';
+          : 'Não indicado';
+        const deliverableLabel = deliverableEntry?.label ?? 'Não selecionado';
+        progressFields.task.textContent = taskEntry?.label ?? 'Não selecionado';
         progressFields.deliverable.textContent = periodicityLabel && deliverableEntry
           ? `${deliverableLabel} (${periodicityLabel})`
           : deliverableEntry
             ? deliverableLabel
-            : 'N�o selecionado';
+            : 'Não selecionado';
         progressFields.review.textContent = isReview
           ? `Sim (${reviewTarget === 'GDS' ? 'GDS' : 'Staff'})`
-          : 'N�o';
+          : 'Não';
         progressFields.start.textContent = formatLisbon(activity.started_at);
 
         inProgressSection.classList.remove('hidden');
@@ -617,7 +617,7 @@ const user = Astro.locals.user;
         managerSelect.dispatchEvent(new Event('change'));
         reviewTargetWrapper.classList.add('hidden');
       } catch (error) {
-        showError(error instanceof Error ? error.message : 'N�o foi poss�vel iniciar a atividade.');
+        showError(error instanceof Error ? error.message : 'Não foi possível iniciar a atividade.');
       }
     });
 
@@ -635,7 +635,7 @@ const user = Astro.locals.user;
         const result = await response.json();
 
         if (!response.ok || !result?.success) {
-          throw new Error(result?.message || 'N�o foi poss�vel terminar a atividade.');
+          throw new Error(result?.message || 'Não foi possível terminar a atividade.');
         }
 
         resetTimer();
@@ -659,7 +659,7 @@ const user = Astro.locals.user;
         stopMessage.classList.remove('hidden');
         setTimeout(() => stopMessage.classList.add('hidden'), 4000);
       } catch (error) {
-        showError(error instanceof Error ? error.message : 'N�o foi poss�vel terminar a atividade.');
+        showError(error instanceof Error ? error.message : 'Não foi possível terminar a atividade.');
       }
     });
   </script>
