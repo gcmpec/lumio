@@ -260,7 +260,7 @@ export class EngagementService {
   }
 
 
-  async listEligibleEngagements(): Promise<EligibleEngagement[]> {
+  async listEligibleEngagements(db: DatabaseExecutor = this.DB): Promise<EligibleEngagement[]> {
     const response = await db.prepare(
       "SELECT * FROM eligible_engagements ORDER BY engagement_name",
     ).all();
@@ -365,7 +365,7 @@ export class EngagementService {
     }
   }
 
-  async listEligibleTasks(): Promise<EligibleTask[]> {
+  async listEligibleTasks(db: DatabaseExecutor = this.DB): Promise<EligibleTask[]> {
     const response = await db.prepare(
       "SELECT * FROM eligible_tasks ORDER BY macroprocess, process, label",
     ).all();
@@ -465,7 +465,7 @@ export class EngagementService {
     }
   }
 
-  async listEligibleDeliverables(): Promise<EligibleDeliverable[]> {
+  async listEligibleDeliverables(db: DatabaseExecutor = this.DB): Promise<EligibleDeliverable[]> {
     const response = await db.prepare(
       "SELECT * FROM eligible_deliverables ORDER BY label",
     ).all();
