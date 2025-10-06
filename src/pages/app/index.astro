@@ -3,162 +3,167 @@ import Layout from "@/layouts/Layout.astro";
 import { buttonVariants } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
-const user = Astro.locals.user;
+const user = Astro.locals.user ?? { name: "", email: "" };
 ---
 
 <Layout title="O Meu Trabalho">
-  <div class="grid gap-8 lg:grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)] xl:gap-12">
-    <section id="start-form-section" data-activity-card="form" class="rounded-xl border bg-card p-6 shadow space-y-6">
-      <div>
-        <h2 class="text-xl font-semibold">Iniciar atividade</h2>
-        <p class="text-sm text-muted-foreground">Seleciona o manager, engagement e tarefa que vais executar.</p>
-      </div>
-      <form id="activity-form" class="space-y-4">
-        <div class="space-y-2">
-          <Label htmlFor="manager-select">Manager</Label>
-          <select
-            id="manager-select"
-            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            required
-            disabled
-          >
-            <option value="">A carregar managers...</option>
-          </select>
+  <div
+    id="activity-page"
+    data-user-name={user.name ?? ""}
+    data-user-email={user.email ?? ""}
+  >
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)] xl:gap-12">
+      <section id="start-form-section" data-activity-card="form" class="rounded-xl border bg-card p-6 shadow space-y-6">
+        <div>
+          <h2 class="text-xl font-semibold">Iniciar atividade</h2>
+          <p class="text-sm text-muted-foreground">Seleciona o manager, engagement e tarefa que vais executar.</p>
         </div>
-
-        <div class="space-y-2">
-          <Label htmlFor="engagement-select">Engagement</Label>
-          <select
-            id="engagement-select"
-            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            required
-            disabled
-          >
-            <option value="">Seleciona um manager primeiro</option>
-          </select>
-        </div>
-
-        <div class="grid gap-4 md:grid-cols-2">
+        <form id="activity-form" class="space-y-4">
           <div class="space-y-2">
-            <Label htmlFor="task-select">Tarefa</Label>
+            <Label htmlFor="manager-select">Manager</Label>
             <select
-              id="task-select"
+              id="manager-select"
               class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              required
               disabled
             >
-              <option value="">Seleciona um engagement primeiro</option>
+              <option value="">A carregar managers...</option>
             </select>
           </div>
+  
           <div class="space-y-2">
-            <Label htmlFor="deliverable-select">Deliverable</Label>
+            <Label htmlFor="engagement-select">Engagement</Label>
             <select
-              id="deliverable-select"
+              id="engagement-select"
               class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              required
               disabled
             >
-              <option value="">Seleciona um engagement primeiro</option>
+              <option value="">Seleciona um manager primeiro</option>
             </select>
           </div>
-        </div>
-
-        <div class="space-y-2">
-          <Label htmlFor="deliverable-periodicity">Periodicidade</Label>
-          <select
-            id="deliverable-periodicity"
-            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled
-          >
-            <option value="">Seleciona um deliverable primeiro</option>
-          </select>
-        </div>
-
-        <div class="space-y-2">
-          <div class="flex items-center gap-2">
-            <input type="checkbox" id="is-review" class="h-4 w-4 rounded border border-input" />
-            <Label htmlFor="is-review" class="text-sm font-medium">Revisão de trabalho realizado</Label>
-          </div>
-          <div id="review-target-wrapper" class="hidden ml-6 space-y-2">
-            <p class="text-sm text-muted-foreground">Indica o alvo da revisão:</p>
-            <div class="flex flex-col gap-2">
-              <label class="inline-flex items-center gap-2 text-sm">
-                <input type="radio" name="review-target" value="Staff" class="h-4 w-4 border-input" />
-                Outro staff
-              </label>
-              <label class="inline-flex items-center gap-2 text-sm">
-                <input type="radio" name="review-target" value="GDS" class="h-4 w-4 border-input" />
-                Trabalho do GDS
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <button type="submit" class={buttonVariants({ size: "lg" })}>
-          Iniciar atividade
-        </button>
-        <p id="activity-error" class="text-sm text-red-600 hidden"></p>
-      </form>
-    </section>
-
-    <div class="space-y-6">
-      <section
-        id="in-progress"
-        data-activity-card="active"
-        class="hidden space-y-4 rounded-xl border bg-card p-6 shadow transition-all"
-      >
-        <div class="flex flex-col gap-3">
-          <div class="flex items-start justify-between gap-4">
-            <div class="flex items-center gap-3">
-              <span
-                id="in-progress-indicator"
-                class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700"
+  
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="space-y-2">
+              <Label htmlFor="task-select">Tarefa</Label>
+              <select
+                id="task-select"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled
               >
-                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                EM CURSO
-              </span>
-              <h2 class="text-xl font-semibold">Atividade em curso</h2>
+                <option value="">Seleciona um engagement primeiro</option>
+              </select>
             </div>
-            <span id="timer" class="text-3xl font-bold">00:00</span>
+            <div class="space-y-2">
+              <Label htmlFor="deliverable-select">Deliverable</Label>
+              <select
+                id="deliverable-select"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled
+              >
+                <option value="">Seleciona um engagement primeiro</option>
+              </select>
+            </div>
           </div>
-          <p class="text-sm text-muted-foreground">Mantém este separador aberto enquanto trabalhas.</p>
-        </div>
-
-        <dl class="grid gap-4 md:grid-cols-2 text-sm">
-          <div>
-            <dt class="font-medium text-muted-foreground">Colaborador</dt>
-            <dd id="progress-user"></dd>
+  
+          <div class="space-y-2">
+            <Label htmlFor="deliverable-periodicity">Periodicidade</Label>
+            <select
+              id="deliverable-periodicity"
+              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled
+            >
+              <option value="">Seleciona um deliverable primeiro</option>
+            </select>
           </div>
-          <div>
-            <dt class="font-medium text-muted-foreground">Manager</dt>
-            <dd id="progress-manager"></dd>
+  
+          <div class="space-y-2">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" id="is-review" class="h-4 w-4 rounded border border-input" />
+              <Label htmlFor="is-review" class="text-sm font-medium">Revisão de trabalho realizado</Label>
+            </div>
+            <div id="review-target-wrapper" class="hidden ml-6 space-y-2">
+              <p class="text-sm text-muted-foreground">Indica o alvo da revisão:</p>
+              <div class="flex flex-col gap-2">
+                <label class="inline-flex items-center gap-2 text-sm">
+                  <input type="radio" name="review-target" value="Staff" class="h-4 w-4 border-input" />
+                  Outro staff
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm">
+                  <input type="radio" name="review-target" value="GDS" class="h-4 w-4 border-input" />
+                  Trabalho do GDS
+                </label>
+              </div>
+            </div>
           </div>
-          <div>
-            <dt class="font-medium text-muted-foreground">Engagement</dt>
-            <dd id="progress-engagement"></dd>
+  
+          <button type="submit" class={buttonVariants({ size: "lg" })}>
+            Iniciar atividade
+          </button>
+          <p id="activity-error" class="text-sm text-red-600 hidden"></p>
+        </form>
+      </section>
+  
+      <div class="space-y-6">
+        <section
+          id="in-progress"
+          data-activity-card="active"
+          class="hidden space-y-4 rounded-xl border bg-card p-6 shadow transition-all"
+        >
+          <div class="flex flex-col gap-3">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <span
+                  id="in-progress-indicator"
+                  class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700"
+                >
+                  <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                  EM CURSO
+                </span>
+                <h2 class="text-xl font-semibold">Atividade em curso</h2>
+              </div>
+              <span id="timer" class="text-3xl font-bold">00:00</span>
+            </div>
+            <p class="text-sm text-muted-foreground">Mantém este separador aberto enquanto trabalhas.</p>
           </div>
-          <div>
-            <dt class="font-medium text-muted-foreground">Tarefa</dt>
-            <dd id="progress-task"></dd>
-          </div>
-          <div>
-            <dt class="font-medium text-muted-foreground">Deliverable</dt>
-            <dd id="progress-deliverable"></dd>
-          </div>
-          <div>
-            <dt class="font-medium text-muted-foreground">Revisão</dt>
-            <dd id="progress-review"></dd>
-          </div>
-          <div>
-            <dt class="font-medium text-muted-foreground">Início</dt>
-            <dd id="progress-start"></dd>
-          </div>
-        </dl>
-
+  
+          <dl class="grid gap-4 md:grid-cols-2 text-sm">
+            <div>
+              <dt class="font-medium text-muted-foreground">Colaborador</dt>
+              <dd id="progress-user"></dd>
+            </div>
+            <div>
+              <dt class="font-medium text-muted-foreground">Manager</dt>
+              <dd id="progress-manager"></dd>
+            </div>
+            <div>
+              <dt class="font-medium text-muted-foreground">Engagement</dt>
+              <dd id="progress-engagement"></dd>
+            </div>
+            <div>
+              <dt class="font-medium text-muted-foreground">Tarefa</dt>
+              <dd id="progress-task"></dd>
+            </div>
+            <div>
+              <dt class="font-medium text-muted-foreground">Deliverable</dt>
+              <dd id="progress-deliverable"></dd>
+            </div>
+            <div>
+              <dt class="font-medium text-muted-foreground">Revisão</dt>
+              <dd id="progress-review"></dd>
+            </div>
+            <div>
+              <dt class="font-medium text-muted-foreground">Início</dt>
+              <dd id="progress-start"></dd>
+            </div>
+          </dl>
+  
         <button id="stop-button" class={buttonVariants({ size: "lg", variant: "destructive" })}>
           Parar atividade
         </button>
         <p id="stop-message" class="text-sm text-green-600 hidden"></p>
       </section>
-
+  
       <section
         id="start-card"
         data-activity-card="start"
@@ -169,7 +174,7 @@ const user = Astro.locals.user;
           <p class="text-sm text-muted-foreground">Preenche o formulário para começares um novo trabalho.</p>
         </div>
       </section>
-
+  
       <section
         id="resume-card"
         data-activity-card="resume"
@@ -183,11 +188,15 @@ const user = Astro.locals.user;
           <p>Não tens atividades pausadas.</p>
         </div>
       </section>
+      </div>
     </div>
-  </div>
-
-
+  
+  
   <script is:inline>
+    const root = document.getElementById('activity-page');
+    const userName = root?.dataset?.userName ?? '';
+    const userEmail = root?.dataset?.userEmail ?? '';
+
     const activityForm = document.getElementById('activity-form');
     const inProgressSection = document.getElementById('in-progress');
     const activityError = document.getElementById('activity-error');
@@ -232,9 +241,6 @@ const user = Astro.locals.user;
       review: document.getElementById('progress-review'),
       start: document.getElementById('progress-start'),
     };
-
-    const userName = ${JSON.stringify(user?.name ?? '')};
-    const userEmail = ${JSON.stringify(user?.email ?? '')};
 
     let managerData = [];
     let activeActivityId = null;
@@ -663,7 +669,7 @@ const user = Astro.locals.user;
       }
     });
   </script>
-
+  </div>
 </Layout>
 
 
