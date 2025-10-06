@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 const user = Astro.locals.user;
 ---
 
-<Layout title="O meu trabalho">
+<Layout title="O Meu Trabalho">
   <div class="grid gap-8 lg:grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)] xl:gap-12">
     <section id="start-form-section" data-activity-card="form" class="rounded-xl border bg-card p-6 shadow space-y-6">
       <div>
@@ -233,8 +233,8 @@ const user = Astro.locals.user;
       start: document.getElementById('progress-start'),
     };
 
-    const userName = ${JSON.stringify(user?.name ?? '')};
-    const userEmail = ${JSON.stringify(user?.email ?? '')};
+    const userName = JSON.stringify(user?.name ?? '');
+    const userEmail = JSON.stringify(user?.email ?? '');
 
     let managerData = [];
     let activeActivityId = null;

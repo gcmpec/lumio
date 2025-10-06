@@ -7,20 +7,20 @@ const currentPath = Astro.url.pathname;
 const user = Astro.locals.user;
 
 const mainLinks: Array<{ href: string; label: string; hidden?: boolean }> = [
-  { href: "/app", label: "Nova atividade" },
-  { href: "/admin/activities", label: "Atividades", hidden: user?.rank !== "Admin" },
+  { href: "/app", label: "O Meu Trabalho" },
 ];
 
 const managerLinks: Array<{ href: string; label: string }> = [
-  { href: "/manager/engagements", label: "Gerir Engagements" },
+  { href: "/manager/engagements", label: "Os Meus Engagements" },
 ];
 
 const adminLinks: Array<{ href: string; label: string }> = [
   { href: "/admin", label: "Dashboard" },
+  { href: "/admin/activities", label: "Histórico de Atividades", hidden: user?.rank !== "Admin" },
   { href: "/admin/users", label: "Gerir Utilizadores" },
-  { href: "/admin/eligible-engagements", label: "Engagements elegíveis" },
-  { href: "/admin/eligible-tasks", label: "Tarefas elegíveis" },
-  { href: "/admin/eligible-deliverables", label: "Deliverables elegíveis" },
+  { href: "/admin/eligible-engagements", label: "Gerir Engagements" },
+  { href: "/admin/eligible-tasks", label: "Gerir Tarefas" },
+  { href: "/admin/eligible-deliverables", label: "Gerir Entregáveis" },
 ];
 
 function isActive(path: string) {
