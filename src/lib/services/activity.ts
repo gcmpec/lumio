@@ -73,6 +73,19 @@ export class ActivityService {
     return ActivityService.formatRow(response.results[0]);
   }
 
+  async getActiveActivityForUser(userEmail: string) {
+    const statement = this.DB.prepare(
+      "SELECT * FROM activities WHERE user_email = ? AND ended_at IS NULL ORDER BY started_at DESC LIMIT 1",
+    ).bind(userEmail);
+
+    const row = await statement.first();
+    if (!row) {
+      return null;
+    }
+
+    return ActivityService.formatRow(row);
+  }
+
   async getDailySummary(date = new Date()) {
     const { startOfDay, endOfDay } = getLisbonDayRange(date);
 

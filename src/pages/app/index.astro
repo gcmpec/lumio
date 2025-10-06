@@ -260,24 +260,31 @@ const user = Astro.locals.user ?? { name: "", email: "" };
     const resetTimer = () => {
       if (timerInterval) {
         clearInterval(timerInterval);
+        timerInterval = null;
       }
       timerDisplay.textContent = '00:00';
     };
 
+    const updateTimerDisplay = () => {
+      if (!activityStartTimestamp) {
+        timerDisplay.textContent = '00:00';
+        return;
+      }
+      const elapsedSeconds = Math.max(0, Math.floor((Date.now() - activityStartTimestamp) / 1000));
+      const minutes = Math.floor(elapsedSeconds / 60);
+      const seconds = elapsedSeconds % 60;
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      const formatted = hours > 0
+        ? `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+        : `${String(remainingMinutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      timerDisplay.textContent = formatted;
+    };
+
     const startTimer = () => {
       resetTimer();
-      timerInterval = setInterval(() => {
-        if (!activityStartTimestamp) return;
-        const elapsedSeconds = Math.floor((Date.now() - activityStartTimestamp) / 1000);
-        const minutes = Math.floor(elapsedSeconds / 60);
-        const seconds = elapsedSeconds % 60;
-        const hours = Math.floor(minutes / 60);
-        const remainingMinutes = minutes % 60;
-        const formatted = hours > 0
-          ? `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-          : `${String(remainingMinutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        timerDisplay.textContent = formatted;
-      }, 1000);
+      updateTimerDisplay();
+      timerInterval = setInterval(updateTimerDisplay, 1000);
     };
 
     const formatLisbon = (isoString) => {
@@ -360,6 +367,95 @@ const user = Astro.locals.user ?? { name: "", email: "" };
       }
       if (inProgressIndicatorDot) {
         inProgressIndicatorDot.classList.toggle('animate-ping', isActive);
+      }
+    };
+
+    const applyActiveActivity = (activity, options = {}) => {
+      if (!activity) {
+        resetTimer();
+        activeActivityId = null;
+        activityStartTimestamp = null;
+        inProgressSection.classList.add('hidden');
+        setActivityState(false);
+        resetPeriodicitySelect('Seleciona um deliverable primeiro');
+        reviewTargetWrapper.classList.add('hidden');
+        reviewCheckbox.checked = false;
+        progressFields.user.textContent = 'Nao indicado';
+        progressFields.manager.textContent = 'Nao indicado';
+        progressFields.engagement.textContent = 'Nao indicado';
+        progressFields.task.textContent = 'Nao selecionado';
+        progressFields.deliverable.textContent = 'Nao selecionado';
+        progressFields.review.textContent = 'Nao';
+        progressFields.start.textContent = '';
+        return;
+      }
+
+      const overrides = options.overrides ?? {};
+      const resetForm = Boolean(options.resetForm);
+
+      activeActivityId = activity.id ?? null;
+      const parsedStartedAt = activity.started_at ? Date.parse(activity.started_at) : NaN;
+      activityStartTimestamp = Number.isFinite(parsedStartedAt) ? parsedStartedAt : Date.now();
+
+      stopMessage.classList.add('hidden');
+      clearError();
+
+      const defaultUserSummary = activity.user_name && activity.user_email
+        ? `${activity.user_name} (${activity.user_email})`
+        : (userName && userEmail ? `${userName} (${userEmail})` : 'Nao indicado');
+      const managerSummary = overrides.manager ?? (
+        activity.manager_name
+          ? `${activity.manager_name}${activity.manager_email ? ` (${activity.manager_email})` : ''}`
+          : 'Nao indicado'
+      );
+      const engagementSummary = overrides.engagement ?? (
+        activity.engagement
+          ? `${activity.engagement_code ? `[${activity.engagement_code}] ` : ''}${activity.engagement}`
+          : 'Nao indicado'
+      );
+      const taskSummary = overrides.task ?? (activity.process ?? 'Nao selecionado');
+      const deliverableSummary = overrides.deliverable ?? (activity.deliverable ?? 'Nao selecionado');
+      const reviewSummary = overrides.review ?? (
+        activity.is_review
+          ? `Sim (${activity.review_target === 'GDS' ? 'GDS' : 'Staff'})`
+          : 'Nao'
+      );
+      const startedText = activity.started_at ? formatLisbon(activity.started_at) : '';
+
+      progressFields.user.textContent = overrides.user ?? defaultUserSummary;
+      progressFields.manager.textContent = managerSummary;
+      progressFields.engagement.textContent = engagementSummary;
+      progressFields.task.textContent = taskSummary;
+      progressFields.deliverable.textContent = deliverableSummary;
+      progressFields.review.textContent = reviewSummary;
+      progressFields.start.textContent = startedText;
+
+      inProgressSection.classList.remove('hidden');
+      setActivityState(true);
+      updatePeriodicityForDeliverable(null);
+
+      if (resetForm) {
+        activityForm.reset();
+        managerSelect.dispatchEvent(new Event('change'));
+        reviewTargetWrapper.classList.add('hidden');
+        reviewCheckbox.checked = false;
+      }
+
+      startTimer();
+    };
+
+    const fetchActiveActivity = async () => {
+      try {
+        const response = await fetch('/api/activities/current');
+        if (!response.ok) {
+          return;
+        }
+        const payload = await response.json();
+        if (payload?.success) {
+          applyActiveActivity(payload.activity ?? null);
+        }
+      } catch (error) {
+        console.error('Failed to load current activity', error);
       }
     };
 
@@ -518,6 +614,7 @@ const user = Astro.locals.user ?? { name: "", email: "" };
     };
 
     loadOptions();
+    fetchActiveActivity();
 
     activityForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -590,38 +687,31 @@ const user = Astro.locals.user ?? { name: "", email: "" };
         }
 
         const { activity } = result;
-        activeActivityId = activity.id;
-        activityStartTimestamp = Date.parse(activity.started_at);
 
         const periodicityValueResolved = periodicityValueRaw || (deliverableEntry?.periodicity ?? '');
         const periodicityLabel = getPeriodicityLabel(periodicityValueResolved);
-
-        progressFields.user.textContent = `${userName} (${userEmail})`;
-        progressFields.manager.textContent = managerEntry
-          ? `${managerEntry.manager.name} (${managerEntry.manager.email})`
-          : 'Não indicado';
-        progressFields.engagement.textContent = engagement
-          ? `${engagement.engagement_code ? `[${engagement.engagement_code}] ` : ''}${engagement.engagement_name}`
-          : 'Não indicado';
-        const deliverableLabel = deliverableEntry?.label ?? 'Não selecionado';
-        progressFields.task.textContent = taskEntry?.label ?? 'Não selecionado';
-        progressFields.deliverable.textContent = periodicityLabel && deliverableEntry
+        const deliverableLabel = deliverableEntry?.label ?? 'Nao selecionado';
+        const deliverableDisplay = periodicityLabel && deliverableEntry
           ? `${deliverableLabel} (${periodicityLabel})`
           : deliverableEntry
             ? deliverableLabel
-            : 'Não selecionado';
-        progressFields.review.textContent = isReview
-          ? `Sim (${reviewTarget === 'GDS' ? 'GDS' : 'Staff'})`
-          : 'Não';
-        progressFields.start.textContent = formatLisbon(activity.started_at);
+            : 'Nao selecionado';
 
-        inProgressSection.classList.remove('hidden');
-        setActivityState(true);
-        startTimer();
-        activityForm.reset();
-        updatePeriodicityForDeliverable(null);
-        managerSelect.dispatchEvent(new Event('change'));
-        reviewTargetWrapper.classList.add('hidden');
+        const hydratedActivity = {
+          ...activity,
+          user_name: userName,
+          user_email: userEmail,
+          manager_name: managerEntry?.manager.name ?? null,
+          manager_email: managerEntry?.manager.email ?? null,
+          engagement: engagement?.engagement_name ?? null,
+          engagement_code: engagement?.engagement_code ?? null,
+          process: taskEntry?.label ?? null,
+          deliverable: deliverableDisplay,
+          is_review: isReview,
+          review_target: reviewTarget ?? null,
+        };
+
+        applyActiveActivity(hydratedActivity, { resetForm: true });
       } catch (error) {
         showError(error instanceof Error ? error.message : 'Não foi possível iniciar a atividade.');
       }
@@ -644,11 +734,7 @@ const user = Astro.locals.user ?? { name: "", email: "" };
           throw new Error(result?.message || 'Não foi possível terminar a atividade.');
         }
 
-        resetTimer();
-        inProgressSection.classList.add('hidden');
-        activeActivityId = null;
-        activityStartTimestamp = null;
-        setActivityState(false);
+        applyActiveActivity(null);
 
         const endedAt = result.activity.ended_at;
         const durationSeconds = result.activity.duration_seconds;
