@@ -82,49 +82,229 @@ const user = Astro.locals.user ?? { name: "", email: "" };
           </div>
   
           <div class="space-y-2">
-            <Label htmlFor="engagement-select">Engagement</Label>
-            <select
-              id="engagement-select"
-              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              required
-              disabled
-            >
-              <option value="">Seleciona um manager primeiro</option>
-            </select>
+            <Label htmlFor="engagement-search-input">Engagement</Label>
+            <div id="engagement-searchbox" class="relative" data-hs-combo-box='{"groupingType":"default","isOpenOnFocus":true}'>
+              <div class="relative">
+                <div class="pointer-events-none absolute inset-y-0 start-0 z-20 flex items-center ps-3.5">
+                  <svg
+                    class="size-4 shrink-0 text-muted-foreground"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                  </svg>
+                </div>
+                <input
+                  id="engagement-search-input"
+                  class="block w-full rounded-lg border border-input bg-background py-2.5 ps-10 pe-4 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  type="text"
+                  role="combobox"
+                  aria-expanded="false"
+                  aria-controls="engagement-search-results"
+                  placeholder="Seleciona um manager primeiro"
+                  autocomplete="off"
+                  data-hs-combo-box-input
+                  disabled
+                  required
+                />
+              </div>
+              <div
+                id="engagement-search-dropdown"
+                class="absolute z-50 mt-1 hidden w-full rounded-lg border border-input bg-card shadow"
+                data-hs-combo-box-output
+              >
+                <div
+                  id="engagement-search-results"
+                  class="max-h-64 overflow-y-auto rounded-b-lg [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-muted [&::-webkit-scrollbar-thumb]:bg-muted-foreground/50"
+                  role="listbox"
+                  data-hs-combo-box-output-items-wrapper
+                ></div>
+                <div
+                  id="engagement-search-empty"
+                  class="hidden px-4 py-6 text-center text-sm text-muted-foreground"
+                >
+                  Sem resultados
+                </div>
+              </div>
+              <input type="hidden" id="engagement-select" />
+            </div>
           </div>
   
           <div class="grid gap-4 md:grid-cols-2">
             <div class="space-y-2">
-              <Label htmlFor="task-select">Tarefa</Label>
-              <select
-                id="task-select"
-                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled
-              >
-                <option value="">Seleciona um engagement primeiro</option>
-              </select>
+              <Label htmlFor="task-search-input">Tarefa</Label>
+              <div id="task-searchbox" class="relative" data-hs-combo-box='{"groupingType":"default","isOpenOnFocus":true}'>
+                <div class="relative">
+                  <div class="pointer-events-none absolute inset-y-0 start-0 z-20 flex items-center ps-3.5">
+                    <svg
+                      class="size-4 shrink-0 text-muted-foreground"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.3-4.3" />
+                    </svg>
+                  </div>
+                  <input
+                    id="task-search-input"
+                    class="block w-full rounded-lg border border-input bg-background py-2.5 ps-10 pe-4 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    type="text"
+                    role="combobox"
+                    aria-expanded="false"
+                    aria-controls="task-search-results"
+                    placeholder="Seleciona o engagement primeiro"
+                    autocomplete="off"
+                    data-hs-combo-box-input
+                    disabled
+                  />
+                </div>
+                <div
+                  id="task-search-dropdown"
+                  class="absolute z-50 mt-1 hidden w-full rounded-lg border border-input bg-card shadow"
+                  data-hs-combo-box-output
+                >
+                  <div
+                    id="task-search-results"
+                    class="max-h-64 overflow-y-auto rounded-b-lg [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-muted [&::-webkit-scrollbar-thumb]:bg-muted-foreground/50"
+                    role="listbox"
+                    data-hs-combo-box-output-items-wrapper
+                  ></div>
+                  <div
+                    id="task-search-empty"
+                    class="hidden px-4 py-6 text-center text-sm text-muted-foreground"
+                  >
+                    Sem resultados
+                  </div>
+                </div>
+                <input type="hidden" id="task-select" />
+              </div>
             </div>
             <div class="space-y-2">
-              <Label htmlFor="deliverable-select">Deliverable</Label>
-              <select
-                id="deliverable-select"
-                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled
-              >
-                <option value="">Seleciona um engagement primeiro</option>
-              </select>
+              <Label htmlFor="deliverable-search-input">Deliverable</Label>
+              <div id="deliverable-searchbox" class="relative" data-hs-combo-box='{"groupingType":"default","isOpenOnFocus":true}'>
+                <div class="relative">
+                  <div class="pointer-events-none absolute inset-y-0 start-0 z-20 flex items-center ps-3.5">
+                    <svg
+                      class="size-4 shrink-0 text-muted-foreground"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.3-4.3" />
+                    </svg>
+                  </div>
+                  <input
+                    id="deliverable-search-input"
+                    class="block w-full rounded-lg border border-input bg-background py-2.5 ps-10 pe-4 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    type="text"
+                    role="combobox"
+                    aria-expanded="false"
+                    aria-controls="deliverable-search-results"
+                    placeholder="Seleciona o engagement primeiro"
+                    autocomplete="off"
+                    data-hs-combo-box-input
+                    disabled
+                  />
+                </div>
+                <div
+                  id="deliverable-search-dropdown"
+                  class="absolute z-50 mt-1 hidden w-full rounded-lg border border-input bg-card shadow"
+                  data-hs-combo-box-output
+                >
+                  <div
+                    id="deliverable-search-results"
+                    class="max-h-64 overflow-y-auto rounded-b-lg [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-muted [&::-webkit-scrollbar-thumb]:bg-muted-foreground/50"
+                    role="listbox"
+                    data-hs-combo-box-output-items-wrapper
+                  ></div>
+                  <div
+                    id="deliverable-search-empty"
+                    class="hidden px-4 py-6 text-center text-sm text-muted-foreground"
+                  >
+                    Sem resultados
+                  </div>
+                </div>
+                <input type="hidden" id="deliverable-select" />
+              </div>
             </div>
           </div>
   
           <div class="space-y-2">
-            <Label htmlFor="deliverable-periodicity">Periodicidade</Label>
-            <select
-              id="deliverable-periodicity"
-              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled
-            >
-              <option value="">Seleciona um deliverable primeiro</option>
-            </select>
+            <Label htmlFor="periodicity-search-input">Periodicidade</Label>
+            <div id="periodicity-searchbox" class="relative" data-hs-combo-box='{"groupingType":"default","isOpenOnFocus":true}'>
+              <div class="relative">
+                <div class="pointer-events-none absolute inset-y-0 start-0 z-20 flex items-center ps-3.5">
+                  <svg
+                    class="size-4 shrink-0 text-muted-foreground"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                  </svg>
+                </div>
+                <input
+                  id="periodicity-search-input"
+                  class="block w-full rounded-lg border border-input bg-background py-2.5 ps-10 pe-4 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  type="text"
+                  role="combobox"
+                  aria-expanded="false"
+                  aria-controls="periodicity-search-results"
+                  placeholder="Seleciona um deliverable primeiro"
+                  autocomplete="off"
+                  data-hs-combo-box-input
+                  disabled
+                />
+              </div>
+              <div
+                id="periodicity-search-dropdown"
+                class="absolute z-50 mt-1 hidden w-full rounded-lg border border-input bg-card shadow"
+                data-hs-combo-box-output
+              >
+                <div
+                  id="periodicity-search-results"
+                  class="max-h-64 overflow-y-auto rounded-b-lg [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-muted [&::-webkit-scrollbar-thumb]:bg-muted-foreground/50"
+                  role="listbox"
+                  data-hs-combo-box-output-items-wrapper
+                ></div>
+                <div
+                  id="periodicity-search-empty"
+                  class="hidden px-4 py-6 text-center text-sm text-muted-foreground"
+                >
+                  Sem resultados
+                </div>
+              </div>
+              <input type="hidden" id="deliverable-periodicity" />
+            </div>
           </div>
   
           <div class="space-y-2">
@@ -259,9 +439,29 @@ const user = Astro.locals.user ?? { name: "", email: "" };
     const managerSearchResults = document.getElementById('manager-search-results');
     const managerSearchEmpty = document.getElementById('manager-search-empty');
     const managerSearchBox = document.getElementById('manager-searchbox');
+    const engagementSearchInput = document.getElementById('engagement-search-input');
+    const engagementSearchDropdown = document.getElementById('engagement-search-dropdown');
+    const engagementSearchResults = document.getElementById('engagement-search-results');
+    const engagementSearchEmpty = document.getElementById('engagement-search-empty');
+    const engagementSearchBox = document.getElementById('engagement-searchbox');
     const engagementSelect = document.getElementById('engagement-select');
+    const taskSearchInput = document.getElementById('task-search-input');
+    const taskSearchDropdown = document.getElementById('task-search-dropdown');
+    const taskSearchResults = document.getElementById('task-search-results');
+    const taskSearchEmpty = document.getElementById('task-search-empty');
+    const taskSearchBox = document.getElementById('task-searchbox');
     const taskSelect = document.getElementById('task-select');
+    const deliverableSearchInput = document.getElementById('deliverable-search-input');
+    const deliverableSearchDropdown = document.getElementById('deliverable-search-dropdown');
+    const deliverableSearchResults = document.getElementById('deliverable-search-results');
+    const deliverableSearchEmpty = document.getElementById('deliverable-search-empty');
+    const deliverableSearchBox = document.getElementById('deliverable-searchbox');
     const deliverableSelect = document.getElementById('deliverable-select');
+    const periodicitySearchInput = document.getElementById('periodicity-search-input');
+    const periodicitySearchDropdown = document.getElementById('periodicity-search-dropdown');
+    const periodicitySearchResults = document.getElementById('periodicity-search-results');
+    const periodicitySearchEmpty = document.getElementById('periodicity-search-empty');
+    const periodicitySearchBox = document.getElementById('periodicity-searchbox');
     const periodicitySelect = document.getElementById('deliverable-periodicity');
     const reviewCheckbox = document.getElementById('is-review');
     const reviewTargetWrapper = document.getElementById('review-target-wrapper');
@@ -287,7 +487,7 @@ const user = Astro.locals.user ?? { name: "", email: "" };
     }, {});
     const availabilityTargets = [startSection, startCard, resumeCard].filter(Boolean);
 
-    function formatManagerLabel(entry) {
+    const formatManagerLabel = (entry) => {
       if (!entry) {
         return '';
       }
@@ -297,185 +497,744 @@ const user = Astro.locals.user ?? { name: "", email: "" };
         return `${name} (${email})`;
       }
       return name || email;
-    }
+    };
 
-    function filterManagers(query) {
-      if (!query) {
-        return managerData;
-      }
-      const normalizedQuery = query.trim().toLowerCase();
-      if (!normalizedQuery) {
-        return managerData;
-      }
-      return managerData.filter((item) => {
-        const name = item.manager?.name?.toLowerCase() ?? '';
-        const email = item.manager?.email?.toLowerCase() ?? '';
-        return name.includes(normalizedQuery) || email.includes(normalizedQuery);
-      });
-    }
+    const createSearchCombo = (config) => {
+      const {
+        input,
+        hiddenInput,
+        dropdown,
+        results,
+        emptyState,
+        box,
+        messages,
+        getId,
+        formatItem,
+        getSearchValues,
+        idPrefix,
+      } = config;
 
-    function syncManagerSelectionUI() {
-      if (!managerSearchResults) {
-        return;
+      if (!input || !hiddenInput || !dropdown || !results) {
+        return {
+          setItems: () => {},
+          clearSelection: () => {},
+          setDisabled: () => {},
+          setPlaceholder: () => {},
+          setSelectionById: () => {},
+          getSelectedId: () => null,
+          getSelectedItem: () => null,
+          setMessages: () => {},
+        };
       }
-      const optionElements = managerSearchResults.querySelectorAll('[data-manager-option]');
-      optionElements.forEach((optionElement) => {
-        const rawValue = optionElement.dataset.value ?? '';
-        const optionId = Number.parseInt(rawValue, 10);
-        const isSelected = Number.isFinite(optionId) && optionId === managerSelectedId;
-        optionElement.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-        const checkIcon = optionElement.querySelector('[data-manager-option-check]');
-        if (checkIcon) {
-          checkIcon.classList.toggle('hidden', !isSelected);
+
+      let items = [];
+      let filteredItems = [];
+      let activeIndex = -1;
+      let selectedId = hiddenInput.value ? String(hiddenInput.value) : null;
+      let isDisabled = Boolean(input.disabled);
+      let messageState = {
+        empty: messages?.empty ?? 'Sem opcoes disponiveis',
+        noResults: messages?.noResults ?? 'Sem resultados',
+      };
+
+      hiddenInput.disabled = isDisabled;
+
+      const resolveItemId = (item) => {
+        if (typeof getId === 'function') {
+          const result = getId(item);
+          return result === null || result === undefined ? '' : String(result);
         }
-      });
-    }
-
-    function updateManagerActiveOption(nextIndex) {
-      if (!managerSearchResults) {
-        managerActiveIndex = -1;
-        return;
-      }
-      const optionElements = managerSearchResults.querySelectorAll('[data-manager-option]');
-      if (!optionElements.length || nextIndex < 0) {
-        optionElements.forEach((element) => element.classList.remove('bg-muted'));
-        managerActiveIndex = -1;
-        if (managerSearchInput) {
-          managerSearchInput.removeAttribute('aria-activedescendant');
+        if (item && Object.prototype.hasOwnProperty.call(item, 'id')) {
+          return String(item.id ?? '');
         }
-        return;
-      }
-      const clampedIndex = Math.max(0, Math.min(nextIndex, optionElements.length - 1));
-      managerActiveIndex = clampedIndex;
-      optionElements.forEach((element, index) => {
-        element.classList.toggle('bg-muted', index === clampedIndex);
-      });
-      const activeOption = optionElements[clampedIndex];
-      if (activeOption && managerSearchInput) {
-        managerSearchInput.setAttribute('aria-activedescendant', activeOption.id);
-        activeOption.scrollIntoView({ block: 'nearest' });
-      }
-    }
-
-    function isManagerDropdownOpen() {
-      return Boolean(managerSearchDropdown) && !managerSearchDropdown.classList.contains('hidden');
-    }
-
-    function openManagerDropdown() {
-      if (!managerSearchDropdown || !managerSearchInput || managerSearchInput.disabled) {
-        return;
-      }
-      managerSearchDropdown.classList.remove('hidden');
-      managerSearchDropdown.style.display = 'block';
-      managerSearchInput.setAttribute('aria-expanded', 'true');
-    }
-
-    function closeManagerDropdown() {
-      if (!managerSearchDropdown || !managerSearchInput) {
-        return;
-      }
-      managerSearchDropdown.classList.add('hidden');
-      managerSearchDropdown.style.display = 'none';
-      managerSearchInput.setAttribute('aria-expanded', 'false');
-      updateManagerActiveOption(-1);
-    }
-
-    function setManagerSelection(entry, emitChange = true) {
-      const previousValue = managerSelect ? managerSelect.value : '';
-      managerSelectedId = entry ? entry.manager.id : null;
-
-      if (managerSearchInput) {
-        if (entry) {
-          managerSearchInput.value = formatManagerLabel(entry);
-        } else if (!managerSearchInput.matches(':focus')) {
-          managerSearchInput.value = '';
+        if (item && Object.prototype.hasOwnProperty.call(item, 'value')) {
+          return String(item.value ?? '');
         }
-      }
+        return '';
+      };
 
-      if (managerSelect) {
-        managerSelect.value = entry ? String(entry.manager.id) : '';
-      }
+      const resolveItemFormat = (item) => {
+        if (typeof formatItem === 'function') {
+          const formatted = formatItem(item);
+          if (typeof formatted === 'string') {
+            return { display: formatted, primary: formatted, secondary: '' };
+          }
+          return {
+            display: formatted?.display ?? formatted?.primary ?? '',
+            primary: formatted?.primary ?? formatted?.display ?? '',
+            secondary: formatted?.secondary ?? '',
+          };
+        }
+        const fallback = item ?? '';
+        return {
+          display: String(fallback),
+          primary: String(fallback),
+          secondary: '',
+        };
+      };
 
-      syncManagerSelectionUI();
+      const resolveSearchValues = (item) => {
+        if (typeof getSearchValues === 'function') {
+          const values = getSearchValues(item);
+          if (Array.isArray(values)) {
+            return values.filter(Boolean).map((value) => String(value));
+          }
+          if (values) {
+            return [String(values)];
+          }
+        }
+        const formatted = resolveItemFormat(item);
+        return [formatted.display, formatted.primary, formatted.secondary].filter(Boolean);
+      };
 
-      if (emitChange && managerSelect && previousValue !== managerSelect.value) {
-        managerSelect.dispatchEvent(new Event('change'));
-      }
-    }
+      const setMessages = (newMessages = {}) => {
+        messageState = { ...messageState, ...newMessages };
+      };
 
-    function renderManagerResults(entries, query = '') {
-      if (!managerSearchResults || !managerSearchEmpty) {
-        managerFilteredEntries = entries;
-        managerActiveIndex = -1;
-        return;
-      }
-      managerSearchResults.innerHTML = '';
-      managerFilteredEntries = entries;
-      managerActiveIndex = -1;
+      const syncSelectionUI = () => {
+        const optionElements = results.querySelectorAll('[data-combo-option]');
+        optionElements.forEach((element) => {
+          const { value } = element.dataset;
+          const isSelected = value === (selectedId ?? '');
+          element.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+          const checkIcon = element.querySelector('[data-combo-option-check]');
+          if (checkIcon) {
+            checkIcon.classList.toggle('hidden', !isSelected);
+          }
+        });
+      };
 
-      if (!entries.length) {
-        managerSearchEmpty.classList.remove('hidden');
-        managerSearchEmpty.textContent = query ? 'Sem resultados' : 'Sem managers disponiveis';
-        return;
-      }
+      const updateActiveOption = (nextIndex) => {
+        const optionElements = results.querySelectorAll('[data-combo-option]');
+        if (!optionElements.length || nextIndex < 0) {
+          optionElements.forEach((element) => element.classList.remove('bg-muted'));
+          activeIndex = -1;
+          input.removeAttribute('aria-activedescendant');
+          return;
+        }
+        const clampedIndex = Math.max(0, Math.min(nextIndex, optionElements.length - 1));
+        activeIndex = clampedIndex;
+        optionElements.forEach((element, index) => {
+          element.classList.toggle('bg-muted', index === clampedIndex);
+        });
+        const activeElement = optionElements[clampedIndex];
+        if (activeElement) {
+          const elementId = activeElement.id || `${idPrefix ?? input.id}-option-${String(activeElement.dataset.value ?? clampedIndex).replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+          if (!activeElement.id) {
+            activeElement.id = elementId;
+          }
+          input.setAttribute('aria-activedescendant', elementId);
+          activeElement.scrollIntoView({ block: 'nearest' });
+        }
+      };
 
-      managerSearchEmpty.classList.add('hidden');
-      entries.forEach((entry, index) => {
-        const optionButton = document.createElement('button');
-        optionButton.type = 'button';
-        optionButton.id = `manager-option-${entry.manager.id}`;
-        optionButton.dataset.managerOption = 'true';
-        optionButton.dataset.value = String(entry.manager.id);
-        optionButton.dataset.index = String(index);
-        optionButton.setAttribute('role', 'option');
-        optionButton.className = 'flex w-full items-center justify-between gap-3 rounded-md px-4 py-2 text-left text-sm text-foreground transition-colors hover:bg-muted focus:bg-muted focus:outline-none';
+      const isOpen = () => !dropdown.classList.contains('hidden');
 
-        const labelWrapper = document.createElement('div');
-        labelWrapper.className = 'flex flex-col';
+      const open = () => {
+        if (isDisabled) {
+          return;
+        }
+        dropdown.classList.remove('hidden');
+        dropdown.style.display = 'block';
+        input.setAttribute('aria-expanded', 'true');
+      };
 
-        const nameElement = document.createElement('span');
-        nameElement.className = 'font-medium';
-        nameElement.textContent = entry.manager.name ?? '';
-        labelWrapper.appendChild(nameElement);
+      const close = () => {
+        dropdown.classList.add('hidden');
+        dropdown.style.display = 'none';
+        input.setAttribute('aria-expanded', 'false');
+        updateActiveOption(-1);
+      };
 
-        if (entry.manager.email) {
-          const emailElement = document.createElement('span');
-          emailElement.className = 'text-xs text-muted-foreground';
-          emailElement.textContent = entry.manager.email;
-          labelWrapper.appendChild(emailElement);
+      const filterItems = (query) => {
+        const normalized = query.trim().toLowerCase();
+        if (!normalized) {
+          return [...items];
+        }
+        return items.filter((item) =>
+          resolveSearchValues(item).some((value) => value.toLowerCase().includes(normalized)),
+        );
+      };
+
+      const render = (list, query) => {
+        results.innerHTML = '';
+        filteredItems = list;
+        updateActiveOption(-1);
+
+        if (!list.length) {
+          if (emptyState) {
+            emptyState.classList.remove('hidden');
+            emptyState.textContent = query.trim() ? messageState.noResults : messageState.empty;
+          }
+          return;
         }
 
-        optionButton.appendChild(labelWrapper);
+        if (emptyState) {
+          emptyState.classList.add('hidden');
+        }
 
-        const checkIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        checkIcon.setAttribute('viewBox', '0 0 24 24');
-        checkIcon.setAttribute('width', '16');
-        checkIcon.setAttribute('height', '16');
-        checkIcon.classList.add('size-3.5', 'shrink-0', 'text-primary', 'hidden');
-        checkIcon.setAttribute('data-manager-option-check', 'true');
+        list.forEach((item, index) => {
+          const formatted = resolveItemFormat(item);
+          const value = resolveItemId(item);
+          const option = document.createElement('button');
+          option.type = 'button';
+          option.dataset.comboOption = 'true';
+          option.dataset.value = value;
+          option.dataset.index = String(index);
+          option.setAttribute('role', 'option');
+          option.className = 'flex w-full items-center justify-between gap-3 rounded-md px-4 py-2 text-left text-sm text-foreground transition-colors hover:bg-muted focus:bg-muted focus:outline-none';
 
-        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-        polyline.setAttribute('points', '20 6 9 17 4 12');
-        polyline.setAttribute('fill', 'none');
-        polyline.setAttribute('stroke', 'currentColor');
-        polyline.setAttribute('stroke-width', '2');
-        polyline.setAttribute('stroke-linecap', 'round');
-        polyline.setAttribute('stroke-linejoin', 'round');
-        checkIcon.appendChild(polyline);
+          const labelWrapper = document.createElement('div');
+          labelWrapper.className = 'flex flex-col';
 
-        optionButton.appendChild(checkIcon);
+          const primarySpan = document.createElement('span');
+          primarySpan.className = 'font-medium';
+          primarySpan.textContent = formatted.primary;
+          labelWrapper.appendChild(primarySpan);
 
-        optionButton.addEventListener('pointerdown', (event) => {
-          event.preventDefault();
-          setManagerSelection(entry);
-          closeManagerDropdown();
+          if (formatted.secondary) {
+            const secondarySpan = document.createElement('span');
+            secondarySpan.className = 'text-xs text-muted-foreground';
+            secondarySpan.textContent = formatted.secondary;
+            labelWrapper.appendChild(secondarySpan);
+          }
+
+          option.appendChild(labelWrapper);
+
+          const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          icon.setAttribute('viewBox', '0 0 24 24');
+          icon.setAttribute('width', '16');
+          icon.setAttribute('height', '16');
+          icon.classList.add('size-3.5', 'shrink-0', 'text-primary', 'hidden');
+          icon.setAttribute('data-combo-option-check', 'true');
+
+          const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+          polyline.setAttribute('points', '20 6 9 17 4 12');
+          polyline.setAttribute('fill', 'none');
+          polyline.setAttribute('stroke', 'currentColor');
+          polyline.setAttribute('stroke-width', '2');
+          polyline.setAttribute('stroke-linecap', 'round');
+          polyline.setAttribute('stroke-linejoin', 'round');
+          icon.appendChild(polyline);
+
+          option.appendChild(icon);
+
+          option.addEventListener('pointerdown', (event) => {
+            event.preventDefault();
+            selectItem(item);
+            close();
+          });
+
+          results.appendChild(option);
         });
 
-        managerSearchResults.appendChild(optionButton);
-      });
-      syncManagerSelectionUI();
-    }
+        syncSelectionUI();
+      };
 
+      const selectItem = (item, options = {}) => {
+        const { emitChange = true, updateInput = true } = options;
+        const previousValue = hiddenInput.value;
+
+        if (!item) {
+          if (!previousValue && selectedId === null) {
+            if (!updateInput) {
+              return;
+            }
+            if (!input.matches(':focus')) {
+              input.value = '';
+            }
+            return;
+          }
+          selectedId = null;
+          hiddenInput.value = '';
+          if (updateInput) {
+            if (!input.matches(':focus')) {
+              input.value = '';
+            }
+          }
+          syncSelectionUI();
+          if (emitChange && previousValue !== hiddenInput.value) {
+            hiddenInput.dispatchEvent(new Event('change'));
+          }
+          return;
+        }
+
+        const value = resolveItemId(item);
+        selectedId = value;
+        hiddenInput.value = value;
+        if (updateInput) {
+          const formatted = resolveItemFormat(item);
+          input.value = formatted.display;
+        }
+        syncSelectionUI();
+        if (emitChange && previousValue !== hiddenInput.value) {
+          hiddenInput.dispatchEvent(new Event('change'));
+        }
+      };
+
+      const clearSelection = (options = {}) => {
+        const { emitChange = true, keepInput = false } = options;
+        if (!hiddenInput.value && selectedId === null) {
+          return;
+        }
+        const previousValue = hiddenInput.value;
+        selectedId = null;
+        hiddenInput.value = '';
+        if (!keepInput) {
+          input.value = '';
+        }
+        syncSelectionUI();
+        if (emitChange && previousValue !== hiddenInput.value) {
+          hiddenInput.dispatchEvent(new Event('change'));
+        }
+      };
+
+      const setItems = (newItems, options = {}) => {
+        items = Array.isArray(newItems) ? [...newItems] : [];
+        if (options.emptyMessage) {
+          messageState.empty = options.emptyMessage;
+        }
+        if (options.noResultsMessage) {
+          messageState.noResults = options.noResultsMessage;
+        }
+
+        const query = input.matches(':focus') ? input.value : '';
+        const list = query ? filterItems(query) : items;
+        render(list, query);
+
+        if (selectedId !== null) {
+          const selectedItem = items.find((entry) => resolveItemId(entry) === selectedId);
+          if (!selectedItem) {
+            clearSelection({ emitChange: options.emitChangeOnClear ?? false, keepInput: false });
+          } else if (!input.matches(':focus')) {
+            const formatted = resolveItemFormat(selectedItem);
+            input.value = formatted.display;
+          }
+        } else if (!input.matches(':focus') && !options.preserveInput) {
+          input.value = '';
+        }
+      };
+
+      const setDisabled = (state, options = {}) => {
+        const { placeholder, clearValue = state, emitChangeOnClear = false, emptyMessage } = options;
+        isDisabled = state;
+        input.disabled = state;
+        hiddenInput.disabled = state;
+        if (typeof placeholder === 'string') {
+          input.placeholder = placeholder;
+        }
+        if (typeof emptyMessage === 'string') {
+          messageState.empty = emptyMessage;
+        }
+        if (state) {
+          close();
+          if (clearValue) {
+            clearSelection({ emitChange: emitChangeOnClear, keepInput: false });
+          }
+        }
+      };
+
+      const setPlaceholder = (text) => {
+        if (typeof text === 'string') {
+          input.placeholder = text;
+        }
+      };
+
+      const setSelectionById = (id, options = {}) => {
+        if (id === null || id === undefined || id === '') {
+          selectItem(null, options);
+          return;
+        }
+        const target = items.find((entry) => resolveItemId(entry) === String(id));
+        if (target) {
+          selectItem(target, options);
+        } else {
+          selectItem(null, options);
+        }
+      };
+
+      const getSelectedId = () => selectedId;
+
+      const getSelectedItem = () => {
+        if (selectedId === null) {
+          return null;
+        }
+        return items.find((entry) => resolveItemId(entry) === selectedId) ?? null;
+      };
+
+      const handleFocus = () => {
+        if (isDisabled) {
+          return;
+        }
+        const query = input.value;
+        const list = query ? filterItems(query) : items;
+        render(list, query);
+        if (list.length || query.trim()) {
+          open();
+        }
+      };
+
+      const handleInput = () => {
+        if (isDisabled) {
+          return;
+        }
+        const query = input.value;
+        if (selectedId !== null) {
+          clearSelection({ emitChange: true, keepInput: true });
+        }
+        const list = filterItems(query);
+        render(list, query);
+        open();
+      };
+
+      const handleKeyDown = (event) => {
+        if (event.key === 'ArrowDown') {
+          if (!isOpen()) {
+            const query = input.value;
+            const list = query ? filterItems(query) : items;
+            render(list, query);
+            if (list.length || query.trim()) {
+              open();
+            }
+          }
+          if (filteredItems.length) {
+            event.preventDefault();
+            const nextIndex = activeIndex < 0 ? 0 : Math.min(activeIndex + 1, filteredItems.length - 1);
+            updateActiveOption(nextIndex);
+          }
+        } else if (event.key === 'ArrowUp') {
+          if (!isOpen()) {
+            const query = input.value;
+            const list = query ? filterItems(query) : items;
+            render(list, query);
+            if (list.length || query.trim()) {
+              open();
+            }
+          }
+          if (filteredItems.length) {
+            event.preventDefault();
+            const nextIndex = activeIndex <= 0 ? filteredItems.length - 1 : activeIndex - 1;
+            updateActiveOption(nextIndex);
+          }
+        } else if (event.key === 'Enter') {
+          if (isOpen() && activeIndex >= 0 && filteredItems[activeIndex]) {
+            event.preventDefault();
+            selectItem(filteredItems[activeIndex]);
+            close();
+          }
+        } else if (event.key === 'Escape') {
+          if (isOpen()) {
+            event.preventDefault();
+            close();
+          }
+        }
+      };
+
+      const handleBlur = () => {
+        window.setTimeout(() => {
+          close();
+        }, 120);
+      };
+
+      input.addEventListener('focus', handleFocus);
+      input.addEventListener('input', handleInput);
+      input.addEventListener('keydown', handleKeyDown);
+      input.addEventListener('blur', handleBlur);
+
+      const pointerDownHandler = (event) => {
+        if (!isOpen()) {
+          return;
+        }
+        if (box && event.target instanceof Node && box.contains(event.target)) {
+          return;
+        }
+        if (dropdown && event.target instanceof Node && dropdown.contains(event.target)) {
+          return;
+        }
+        close();
+      };
+
+      document.addEventListener('pointerdown', pointerDownHandler);
+
+      return {
+        setItems,
+        clearSelection,
+        setDisabled,
+        setPlaceholder,
+        setSelectionById,
+        getSelectedId,
+        getSelectedItem,
+        setMessages,
+      };
+    };
+
+    const managerCombo = createSearchCombo({
+      input: managerSearchInput,
+      hiddenInput: managerSelect,
+      dropdown: managerSearchDropdown,
+      results: managerSearchResults,
+      emptyState: managerSearchEmpty,
+      box: managerSearchBox,
+      idPrefix: 'manager',
+      messages: {
+        empty: 'A carregar managers...',
+        noResults: 'Sem resultados',
+      },
+      getId: (entry) => (entry?.manager?.id != null ? String(entry.manager.id) : ''),
+      formatItem: (entry) => ({
+        display: formatManagerLabel(entry),
+        primary: entry?.manager?.name ?? '',
+        secondary: entry?.manager?.email ?? '',
+      }),
+      getSearchValues: (entry) => [
+        entry?.manager?.name ?? '',
+        entry?.manager?.email ?? '',
+      ],
+    });
+
+    const engagementCombo = createSearchCombo({
+      input: engagementSearchInput,
+      hiddenInput: engagementSelect,
+      dropdown: engagementSearchDropdown,
+      results: engagementSearchResults,
+      emptyState: engagementSearchEmpty,
+      box: engagementSearchBox,
+      idPrefix: 'engagement',
+      messages: {
+        empty: 'Seleciona o manager primeiro',
+        noResults: 'Sem resultados',
+      },
+      getId: (engagement) => (engagement?.id != null ? String(engagement.id) : ''),
+      formatItem: (engagement) => {
+        const code = engagement?.engagement_code ? `[${engagement.engagement_code}] ` : '';
+        const label = engagement?.engagement_name ?? '';
+        return {
+          display: `${code}${label}`.trim(),
+          primary: `${code}${label}`.trim(),
+        };
+      },
+      getSearchValues: (engagement) => [
+        engagement?.engagement_name ?? '',
+        engagement?.engagement_code ?? '',
+      ],
+    });
+
+    const taskCombo = createSearchCombo({
+      input: taskSearchInput,
+      hiddenInput: taskSelect,
+      dropdown: taskSearchDropdown,
+      results: taskSearchResults,
+      emptyState: taskSearchEmpty,
+      box: taskSearchBox,
+      idPrefix: 'task',
+      messages: {
+        empty: 'Seleciona o engagement primeiro',
+        noResults: 'Sem resultados',
+      },
+      getId: (task) => (task?.id != null ? String(task.id) : ''),
+      formatItem: (task) => ({
+        display: task?.label ?? '',
+        primary: task?.label ?? '',
+      }),
+      getSearchValues: (task) => [task?.label ?? ''],
+    });
+
+    const deliverableCombo = createSearchCombo({
+      input: deliverableSearchInput,
+      hiddenInput: deliverableSelect,
+      dropdown: deliverableSearchDropdown,
+      results: deliverableSearchResults,
+      emptyState: deliverableSearchEmpty,
+      box: deliverableSearchBox,
+      idPrefix: 'deliverable',
+      messages: {
+        empty: 'Seleciona o engagement primeiro',
+        noResults: 'Sem resultados',
+      },
+      getId: (deliverable) => (deliverable?.id != null ? String(deliverable.id) : ''),
+      formatItem: (deliverable) => ({
+        display: deliverable?.label ?? '',
+        primary: deliverable?.label ?? '',
+      }),
+      getSearchValues: (deliverable) => [deliverable?.label ?? ''],
+    });
+
+    const periodicityCombo = createSearchCombo({
+      input: periodicitySearchInput,
+      hiddenInput: periodicitySelect,
+      dropdown: periodicitySearchDropdown,
+      results: periodicitySearchResults,
+      emptyState: periodicitySearchEmpty,
+      box: periodicitySearchBox,
+      idPrefix: 'periodicity',
+      messages: {
+        empty: 'Seleciona um deliverable primeiro',
+        noResults: 'Sem resultados',
+      },
+      getId: (item) => item?.value ?? '',
+      formatItem: (item) => ({
+        display: item?.label ?? '',
+        primary: item?.label ?? '',
+      }),
+      getSearchValues: (item) => [item?.label ?? '', item?.value ?? ''],
+    });
+
+    const setEngagementIdleState = (message = 'Seleciona o manager primeiro', options = {}) => {
+      const { emitChange = false } = options;
+      engagementCombo.setItems([], { emptyMessage: message });
+      engagementCombo.setDisabled(true, {
+        placeholder: message,
+        emptyMessage: message,
+        clearValue: true,
+        emitChangeOnClear: emitChange,
+      });
+    };
+
+    const setTaskIdleState = (message = 'Seleciona o engagement primeiro', options = {}) => {
+      const { emitChange = false } = options;
+      taskCombo.setItems([], { emptyMessage: message });
+      taskCombo.setDisabled(true, {
+        placeholder: message,
+        emptyMessage: message,
+        clearValue: true,
+        emitChangeOnClear: emitChange,
+      });
+    };
+
+    const setDeliverableIdleState = (message = 'Seleciona o engagement primeiro', options = {}) => {
+      const { emitChange = false } = options;
+      deliverableCombo.setItems([], { emptyMessage: message });
+      deliverableCombo.setDisabled(true, {
+        placeholder: message,
+        emptyMessage: message,
+        clearValue: true,
+        emitChangeOnClear: emitChange,
+      });
+    };
+
+    const setPeriodicityIdleState = (message = 'Seleciona um deliverable primeiro', options = {}) => {
+      const { emitChange = false } = options;
+      periodicityCombo.setItems([], { emptyMessage: message });
+      periodicityCombo.setDisabled(true, {
+        placeholder: message,
+        emptyMessage: message,
+        clearValue: true,
+        emitChangeOnClear: emitChange,
+      });
+    };
+
+    setEngagementIdleState();
+    setTaskIdleState();
+    setDeliverableIdleState();
+    setPeriodicityIdleState();
+
+    const populateManagers = () => {
+      if (!managerData.length) {
+        managerCombo.setItems([], { emptyMessage: 'Sem managers disponiveis' });
+        managerCombo.setDisabled(true, {
+          placeholder: 'Sem managers disponiveis',
+          emptyMessage: 'Sem managers disponiveis',
+          clearValue: true,
+          emitChangeOnClear: true,
+        });
+        setEngagementIdleState('Sem managers disponiveis');
+        setTaskIdleState('Sem managers disponiveis');
+        setDeliverableIdleState('Sem managers disponiveis');
+        setPeriodicityIdleState('Sem deliverables configurados');
+        return;
+      }
+      managerCombo.setItems(managerData, { emptyMessage: 'Sem managers disponiveis' });
+      managerCombo.setDisabled(false, { placeholder: 'Seleciona o manager', clearValue: false });
+      setEngagementIdleState('Seleciona o manager primeiro');
+      setTaskIdleState('Seleciona o engagement primeiro');
+      setDeliverableIdleState('Seleciona o engagement primeiro');
+      setPeriodicityIdleState('Seleciona um deliverable primeiro');
+      const currentValue = managerSelect.value;
+      if (currentValue) {
+        managerCombo.setSelectionById(currentValue, { emitChange: false, updateInput: !managerSearchInput?.matches(':focus') });
+      } else if (!managerSearchInput?.matches(':focus')) {
+        managerSearchInput.value = '';
+      }
+    };
+
+    const populateEngagements = (engagements) => {
+      const list = Array.isArray(engagements) ? engagements : [];
+      engagementCombo.clearSelection({ emitChange: true });
+      if (!list.length) {
+        engagementCombo.setItems([], { emptyMessage: 'Sem engagements configurados' });
+        engagementCombo.setDisabled(true, {
+          placeholder: 'Sem engagements configurados',
+          emptyMessage: 'Sem engagements configurados',
+          clearValue: false,
+        });
+        return;
+      }
+      engagementCombo.setItems(list, { emptyMessage: 'Sem engagements configurados' });
+      engagementCombo.setDisabled(false, { placeholder: 'Seleciona o engagement', clearValue: false });
+    };
+
+    const populateTasks = (tasks) => {
+      const list = Array.isArray(tasks) ? tasks : [];
+      taskCombo.clearSelection({ emitChange: true });
+      if (!list.length) {
+        taskCombo.setItems([], { emptyMessage: 'Sem tarefas configuradas' });
+        taskCombo.setDisabled(true, {
+          placeholder: 'Sem tarefas configuradas',
+          emptyMessage: 'Sem tarefas configuradas',
+          clearValue: false,
+        });
+        return;
+      }
+      taskCombo.setItems(list, { emptyMessage: 'Sem tarefas configuradas' });
+      taskCombo.setDisabled(false, { placeholder: 'Seleciona a tarefa', clearValue: false });
+    };
+
+    const populateDeliverables = (deliverables) => {
+      const list = Array.isArray(deliverables) ? deliverables : [];
+      deliverableCombo.clearSelection({ emitChange: true });
+      if (!list.length) {
+        deliverableCombo.setItems([], { emptyMessage: 'Sem deliverables configurados' });
+        deliverableCombo.setDisabled(true, {
+          placeholder: 'Sem deliverables configurados',
+          emptyMessage: 'Sem deliverables configurados',
+          clearValue: false,
+        });
+        return;
+      }
+      deliverableCombo.setItems(list, { emptyMessage: 'Sem deliverables configurados' });
+      deliverableCombo.setDisabled(false, { placeholder: 'Seleciona o deliverable', clearValue: false });
+    };
+
+    const updatePeriodicityForDeliverable = (deliverable) => {
+      if (!periodicitySelect) {
+        return;
+      }
+
+      if (!deliverable) {
+        setPeriodicityIdleState('Seleciona o deliverable', { emitChange: true });
+        return;
+      }
+
+      const periodicity = deliverable.periodicity ?? '';
+      if (periodicity && periodicityLabelMap[periodicity]) {
+        periodicityCombo.setItems(
+          [{ value: periodicity, label: periodicityLabelMap[periodicity] }],
+          { emptyMessage: 'Periodicidade definida pelo manager' },
+        );
+        periodicityCombo.setDisabled(true, {
+          placeholder: 'Periodicidade definida pelo manager',
+          emptyMessage: 'Periodicidade definida pelo manager',
+          clearValue: false,
+        });
+        periodicityCombo.setSelectionById(periodicity, { emitChange: true, updateInput: true });
+      } else {
+        periodicityCombo.setItems(periodicityOptions, { emptyMessage: 'Sem periodicidade configurada' });
+        periodicityCombo.setDisabled(false, { placeholder: 'Seleciona a periodicidade', clearValue: false });
+        periodicityCombo.clearSelection({ emitChange: true });
+      }
+    };
+
+    let managerData = [];
     const progressFields = {
       user: document.getElementById('progress-user'),
       manager: document.getElementById('progress-manager'),
@@ -486,10 +1245,6 @@ const user = Astro.locals.user ?? { name: "", email: "" };
       start: document.getElementById('progress-start'),
     };
 
-    let managerData = [];
-    let managerFilteredEntries = [];
-    let managerActiveIndex = -1;
-    let managerSelectedId = null;
     let activeActivityId = null;
     let activityStartTimestamp = null;
     let timerInterval = null;
@@ -546,58 +1301,74 @@ const user = Astro.locals.user ?? { name: "", email: "" };
       });
     };
 
-    const resetSelect = (select, placeholder) => {
-      select.innerHTML = '';
-      const option = document.createElement('option');
-      option.value = '';
-      option.textContent = placeholder;
-      select.appendChild(option);
-      select.value = '';
-    };
-
-    const resetPeriodicitySelect = (placeholder = 'Seleciona um deliverable primeiro') => {
-      if (!periodicitySelect) return;
-      resetSelect(periodicitySelect, placeholder);
-      periodicitySelect.disabled = true;
-    };
-
-    const updatePeriodicityForDeliverable = (deliverable) => {
-      if (!periodicitySelect) {
-        return;
-      }
-
-      if (!deliverable) {
-        resetPeriodicitySelect('Seleciona o deliverable');
-        return;
-      }
-
-      const periodicity = deliverable.periodicity ?? null;
-      if (periodicity && periodicityLabelMap[periodicity]) {
-        resetSelect(periodicitySelect, 'Periodicidade definida pelo manager');
-        const periodicityOption = document.createElement('option');
-        periodicityOption.value = periodicity;
-        periodicityOption.textContent = periodicityLabelMap[periodicity];
-        periodicitySelect.appendChild(periodicityOption);
-        periodicitySelect.value = periodicity;
-        periodicitySelect.disabled = true;
-      } else {
-        resetSelect(periodicitySelect, 'Seleciona a periodicidade');
-        periodicityOptions.forEach((item) => {
-          const periodicityOption = document.createElement('option');
-          periodicityOption.value = item.value;
-          periodicityOption.textContent = item.label;
-          periodicitySelect.appendChild(periodicityOption);
-        });
-        periodicitySelect.disabled = false;
-      }
-    };
-
     const getPeriodicityLabel = (value) => {
       if (!value) {
         return '';
       }
       return periodicityLabelMap[value] ?? value;
     };
+
+    managerSelect.addEventListener('change', () => {
+      const managerId = Number.parseInt(managerSelect.value, 10);
+
+      if (!Number.isFinite(managerId)) {
+        setEngagementIdleState('Seleciona o manager primeiro', { emitChange: true });
+        setTaskIdleState('Seleciona o engagement primeiro', { emitChange: true });
+        setDeliverableIdleState('Seleciona o engagement primeiro', { emitChange: true });
+        setPeriodicityIdleState('Seleciona um deliverable primeiro', { emitChange: true });
+        return;
+      }
+
+      setEngagementIdleState('Seleciona o engagement', { emitChange: true });
+      setTaskIdleState('Seleciona o engagement primeiro', { emitChange: true });
+      setDeliverableIdleState('Seleciona o engagement primeiro', { emitChange: true });
+      setPeriodicityIdleState('Seleciona um deliverable primeiro', { emitChange: true });
+
+      const entry = managerData.find((item) => item.manager.id === managerId);
+      if (!entry) {
+        return;
+      }
+
+      managerCombo.setSelectionById(managerId, {
+        emitChange: false,
+        updateInput: !managerSearchInput?.matches(':focus'),
+      });
+
+      populateEngagements(entry.engagements ?? []);
+    });
+
+    engagementSelect.addEventListener('change', () => {
+      const selection = getSelectedEngagement();
+      if (!selection) {
+        setTaskIdleState('Seleciona o engagement primeiro', { emitChange: true });
+        setDeliverableIdleState('Seleciona o engagement primeiro', { emitChange: true });
+        setPeriodicityIdleState('Seleciona um deliverable primeiro', { emitChange: true });
+        return;
+      }
+
+      setTaskIdleState('Seleciona a tarefa', { emitChange: true });
+      setDeliverableIdleState('Seleciona o deliverable', { emitChange: true });
+      setPeriodicityIdleState('Seleciona o deliverable', { emitChange: true });
+
+      const { engagement } = selection;
+      populateTasks(engagement.tasks ?? []);
+      populateDeliverables(engagement.deliverables ?? []);
+    });
+
+    deliverableSelect.addEventListener('change', () => {
+      const selection = getSelectedEngagement();
+      if (!selection) {
+        setPeriodicityIdleState('Seleciona um deliverable primeiro', { emitChange: true });
+        return;
+      }
+      const deliverableId = Number.parseInt(deliverableSelect.value, 10);
+      if (!Number.isFinite(deliverableId)) {
+        setPeriodicityIdleState('Seleciona o deliverable', { emitChange: true });
+        return;
+      }
+      const deliverable = selection.engagement.deliverables?.find((item) => item.id === deliverableId) ?? null;
+      updatePeriodicityForDeliverable(deliverable ?? null);
+    });
 
     const setActivityState = (isActive) => {
       availabilityTargets.forEach((element) => {
@@ -624,7 +1395,7 @@ const user = Astro.locals.user ?? { name: "", email: "" };
         activityStartTimestamp = null;
         inProgressSection.classList.add('hidden');
         setActivityState(false);
-        resetPeriodicitySelect('Seleciona um deliverable primeiro');
+        setPeriodicityIdleState('Seleciona um deliverable primeiro', { emitChange: true });
         reviewTargetWrapper.classList.add('hidden');
         reviewCheckbox.checked = false;
         progressFields.user.textContent = 'Nao indicado';
@@ -723,250 +1494,8 @@ const user = Astro.locals.user ?? { name: "", email: "" };
       return { managerEntry, engagement };
     };
 
-    resetPeriodicitySelect();
+    setPeriodicityIdleState();
     setActivityState(false);
-
-    const populateManagers = () => {
-      closeManagerDropdown();
-
-      if (!managerSearchInput) {
-        return;
-      }
-
-      const previousRawValue = managerSelect ? managerSelect.value : '';
-      const previousId = Number.parseInt(previousRawValue, 10);
-      const hadPreviousSelection = Number.isFinite(previousId);
-
-      if (!managerData.length) {
-        managerSearchInput.value = '';
-        managerSearchInput.placeholder = 'Sem managers disponiveis';
-        managerSearchInput.disabled = true;
-
-        if (managerSearchResults) {
-          managerSearchResults.innerHTML = '';
-        }
-        if (managerSearchEmpty) {
-          managerSearchEmpty.classList.remove('hidden');
-          managerSearchEmpty.textContent = 'Sem managers disponiveis';
-        }
-
-        setManagerSelection(null, true);
-        resetPeriodicitySelect('Sem deliverables configurados');
-        return;
-      }
-
-      managerSearchInput.disabled = false;
-      managerSearchInput.placeholder = 'Seleciona o manager';
-
-      renderManagerResults(managerData);
-
-      if (hadPreviousSelection) {
-        const existingEntry = managerData.find((item) => item.manager.id === previousId) ?? null;
-        if (existingEntry) {
-          managerSelectedId = existingEntry.manager.id;
-          managerSearchInput.value = formatManagerLabel(existingEntry);
-          syncManagerSelectionUI();
-        } else {
-          setManagerSelection(null, true);
-        }
-      } else {
-        managerSelectedId = null;
-        if (!managerSearchInput.matches(':focus')) {
-          managerSearchInput.value = '';
-        }
-        syncManagerSelectionUI();
-      }
-    };
-
-    const populateEngagements = (engagements) => {
-      resetSelect(engagementSelect, engagements.length ? 'Seleciona o engagement' : 'Sem engagements configurados');
-      engagements.forEach((engagement) => {
-        const option = document.createElement('option');
-        option.value = String(engagement.id);
-        const codePart = engagement.engagement_code ? `[${engagement.engagement_code}] ` : '';
-        option.textContent = `${codePart}${engagement.engagement_name}`;
-        engagementSelect.appendChild(option);
-      });
-      engagementSelect.disabled = engagements.length === 0;
-    };
-
-    const populateTasks = (tasks) => {
-      resetSelect(taskSelect, tasks.length ? 'Seleciona a tarefa' : 'Sem tarefas configuradas');
-      tasks.forEach((task) => {
-        const option = document.createElement('option');
-        option.value = String(task.id);
-        option.textContent = task.label;
-        taskSelect.appendChild(option);
-      });
-      taskSelect.disabled = tasks.length === 0;
-    };
-
-    const populateDeliverables = (deliverables) => {
-      resetSelect(deliverableSelect, deliverables.length ? 'Seleciona o deliverable' : 'Sem deliverables configurados');
-      deliverables.forEach((deliverable) => {
-        const option = document.createElement('option');
-        option.value = String(deliverable.id);
-        option.textContent = deliverable.label;
-        deliverableSelect.appendChild(option);
-      });
-      deliverableSelect.disabled = deliverables.length === 0;
-      resetPeriodicitySelect(deliverables.length ? 'Seleciona o deliverable' : 'Sem deliverables configurados');
-    };
-
-    managerSelect.addEventListener('change', () => {
-      closeManagerDropdown();
-
-      const managerId = Number.parseInt(managerSelect.value, 10);
-      managerSelectedId = Number.isFinite(managerId) ? managerId : null;
-
-      if (!Number.isFinite(managerId) && managerSearchInput && !managerSearchInput.matches(':focus')) {
-        managerSearchInput.value = '';
-      }
-
-      syncManagerSelectionUI();
-
-      resetSelect(engagementSelect, 'Seleciona o engagement');
-      resetSelect(taskSelect, 'Seleciona o engagement primeiro');
-      resetSelect(deliverableSelect, 'Seleciona o engagement primeiro');
-      resetPeriodicitySelect('Seleciona um deliverable primeiro');
-      engagementSelect.disabled = true;
-      taskSelect.disabled = true;
-      deliverableSelect.disabled = true;
-
-      if (!Number.isFinite(managerId)) {
-        return;
-      }
-      const entry = managerData.find((item) => item.manager.id === managerId);
-      if (!entry) {
-        return;
-      }
-      if (managerSearchInput && !managerSearchInput.matches(':focus')) {
-        managerSearchInput.value = formatManagerLabel(entry);
-      }
-      populateEngagements(entry.engagements);
-    });
-
-    if (managerSearchInput) {
-      managerSearchInput.addEventListener('focus', () => {
-        if (managerSearchInput.disabled) {
-          return;
-        }
-        const query = managerSearchInput.value;
-        const filtered = filterManagers(query);
-        renderManagerResults(filtered, query);
-        if (filtered.length || query.trim()) {
-          openManagerDropdown();
-        } else if (managerData.length) {
-          openManagerDropdown();
-        }
-      });
-
-      managerSearchInput.addEventListener('input', () => {
-        if (managerSearchInput.disabled) {
-          return;
-        }
-        const query = managerSearchInput.value;
-        if (managerSelectedId !== null) {
-          setManagerSelection(null, true);
-        }
-        const filtered = filterManagers(query);
-        renderManagerResults(filtered, query);
-        openManagerDropdown();
-      });
-
-      managerSearchInput.addEventListener('keydown', (event) => {
-        if (event.key === 'ArrowDown') {
-          if (!isManagerDropdownOpen()) {
-            const filtered = filterManagers(managerSearchInput.value);
-            renderManagerResults(filtered, managerSearchInput.value);
-            if (filtered.length || managerData.length) {
-              openManagerDropdown();
-            }
-          }
-          if (managerFilteredEntries.length) {
-            event.preventDefault();
-            const nextIndex = managerActiveIndex < 0
-              ? 0
-              : Math.min(managerActiveIndex + 1, managerFilteredEntries.length - 1);
-            updateManagerActiveOption(nextIndex);
-          }
-        } else if (event.key === 'ArrowUp') {
-          if (!isManagerDropdownOpen()) {
-            const filtered = filterManagers(managerSearchInput.value);
-            renderManagerResults(filtered, managerSearchInput.value);
-            if (filtered.length || managerData.length) {
-              openManagerDropdown();
-            }
-          }
-          if (managerFilteredEntries.length) {
-            event.preventDefault();
-            const nextIndex = managerActiveIndex <= 0
-              ? managerFilteredEntries.length - 1
-              : managerActiveIndex - 1;
-            updateManagerActiveOption(nextIndex);
-          }
-        } else if (event.key === 'Enter') {
-          if (isManagerDropdownOpen() && managerActiveIndex >= 0 && managerFilteredEntries[managerActiveIndex]) {
-            event.preventDefault();
-            const entry = managerFilteredEntries[managerActiveIndex];
-            setManagerSelection(entry);
-            closeManagerDropdown();
-          }
-        } else if (event.key === 'Escape') {
-          if (isManagerDropdownOpen()) {
-            event.preventDefault();
-            closeManagerDropdown();
-          }
-        }
-      });
-
-      managerSearchInput.addEventListener('blur', () => {
-        setTimeout(() => closeManagerDropdown(), 120);
-      });
-    }
-
-    if (managerSearchBox) {
-      document.addEventListener('pointerdown', (event) => {
-        if (!isManagerDropdownOpen()) {
-          return;
-        }
-        if (event.target instanceof Node && managerSearchBox.contains(event.target)) {
-          return;
-        }
-        closeManagerDropdown();
-      });
-    }
-
-    engagementSelect.addEventListener('change', () => {
-      resetSelect(taskSelect, 'Seleciona a tarefa');
-      resetSelect(deliverableSelect, 'Seleciona o deliverable');
-      resetPeriodicitySelect('Seleciona o deliverable');
-      taskSelect.disabled = true;
-      deliverableSelect.disabled = true;
-
-      const selection = getSelectedEngagement();
-      if (!selection) {
-        return;
-      }
-      const { engagement } = selection;
-      populateTasks(engagement.tasks ?? []);
-      populateDeliverables(engagement.deliverables ?? []);
-    });
-
-    deliverableSelect.addEventListener('change', () => {
-      const selection = getSelectedEngagement();
-      if (!selection) {
-        resetPeriodicitySelect('Seleciona um deliverable primeiro');
-        return;
-      }
-      const deliverableId = Number.parseInt(deliverableSelect.value, 10);
-      if (!Number.isFinite(deliverableId)) {
-        updatePeriodicityForDeliverable(null);
-        return;
-      }
-      const deliverable = selection.engagement.deliverables?.find((item) => item.id === deliverableId) ?? null;
-      updatePeriodicityForDeliverable(deliverable ?? null);
-    });
 
     reviewCheckbox.addEventListener('change', () => {
       if (reviewCheckbox.checked) {
@@ -989,12 +1518,12 @@ const user = Astro.locals.user ?? { name: "", email: "" };
         }
         managerData = payload.managers ?? [];
         populateManagers();
-        resetPeriodicitySelect();
+        setPeriodicityIdleState('Seleciona um deliverable primeiro');
         clearError();
       } catch (error) {
         managerData = [];
         populateManagers();
-        resetPeriodicitySelect('Sem deliverables configurados');
+        setPeriodicityIdleState('Sem deliverables configurados');
         showError(error instanceof Error ? error.message : 'Não foi possível carregar os managers.');
       }
     };
