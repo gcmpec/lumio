@@ -360,9 +360,9 @@ const EngagementManager = () => {
       <section className="rounded-xl border bg-card p-6 shadow">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold">{editingId ? "Editar engagement" : "Novo engagement"}</h2>
+            <h2 className="text-lg font-semibold">{editingId ? "Editar engagement" : "Caracterizar novo engagement"}</h2>
             <p className="text-sm text-muted-foreground">
-              Define o cdigo, nome, tarefas e deliverables disponveis para este engagement.
+              Define código, nome, tarefas e deliverables disponveis para este engagement.
             </p>
           </div>
           {editingId && (
@@ -380,7 +380,7 @@ const EngagementManager = () => {
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="engagement-code">Cdigo do engagement</Label>
+              <Label htmlFor="engagement-code">Código do engagement</Label>
               <Input
                 id="engagement-code"
                 name="engagement_code"
@@ -444,7 +444,7 @@ const EngagementManager = () => {
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Tarefas elegveis</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Tarefas elegíveis</h3>
               <button
                 type="button"
                 className={buttonVariants({ variant: "secondary", size: "sm" })}
@@ -476,7 +476,7 @@ const EngagementManager = () => {
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Deliverables elegveis</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Deliverables elegíveis</h3>
               <button
                 type="button"
                 className={buttonVariants({ variant: "secondary", size: "sm" })}
@@ -528,7 +528,7 @@ const EngagementManager = () => {
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Engagements configurados</h2>
+          <h2 className="text-lg font-semibold">Engagements atribuídos a mim</h2>
           <button
             type="button"
             className={buttonVariants({ variant: "outline", size: "sm" })}
@@ -542,7 +542,7 @@ const EngagementManager = () => {
         {loading ? (
           <p className="text-sm text-muted-foreground">A carregar engagements...</p>
         ) : engagements.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Ainda no existem engagements configurados.</p>
+          <p className="text-sm text-muted-foreground">Ainda não existem engagements.</p>
         ) : (
           <div className="space-y-4">
             {engagements.map((engagement) => (
