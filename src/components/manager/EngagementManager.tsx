@@ -409,7 +409,7 @@ const EngagementManager = () => {
 
           <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
             <div className="space-y-2">
-              <Label htmlFor="eligible-engagement">Sugestes existentes</Label>
+              <Label htmlFor="eligible-engagement">Seleciona um Engagement</Label>
               <select
                 id="eligible-engagement"
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
