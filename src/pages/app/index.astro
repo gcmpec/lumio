@@ -20,15 +20,65 @@ const user = Astro.locals.user ?? { name: "", email: "" };
         </div>
         <form id="activity-form" class="space-y-4">
           <div class="space-y-2">
-            <Label htmlFor="manager-select">Manager</Label>
-            <select
-              id="manager-select"
-              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              required
-              disabled
+            <Label htmlFor="manager-search-input">Manager</Label>
+            <div
+              id="manager-searchbox"
+              class="relative"
+              data-hs-combo-box='{"groupingType":"default","isOpenOnFocus":true}'
             >
-              <option value="">A carregar managers...</option>
-            </select>
+              <div class="relative">
+                <div class="pointer-events-none absolute inset-y-0 start-0 z-20 flex items-center ps-3.5">
+                  <svg
+                    class="size-4 shrink-0 text-muted-foreground"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                  </svg>
+                </div>
+                <input
+                  id="manager-search-input"
+                  class="block w-full rounded-lg border border-input bg-background py-2.5 ps-10 pe-4 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  type="text"
+                  role="combobox"
+                  aria-expanded="false"
+                  aria-controls="manager-search-results"
+                  placeholder="A carregar managers..."
+                  autocomplete="off"
+                  data-hs-combo-box-input
+                  disabled
+                  required
+                />
+              </div>
+              <div
+                id="manager-search-dropdown"
+                class="absolute z-50 mt-1 hidden w-full rounded-lg border border-input bg-card shadow"
+                data-hs-combo-box-output
+              >
+                <div
+                  id="manager-search-results"
+                  class="max-h-64 overflow-y-auto rounded-b-lg [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-muted [&::-webkit-scrollbar-thumb]:bg-muted-foreground/50"
+                  role="listbox"
+                  data-hs-combo-box-output-items-wrapper
+                ></div>
+                <div
+                  id="manager-search-empty"
+                  class="hidden px-4 py-6 text-center text-sm text-muted-foreground"
+                  data-manager-empty
+                >
+                  Sem resultados
+                </div>
+              </div>
+              <input type="hidden" id="manager-select" name="manager" />
+            </div>
           </div>
   
           <div class="space-y-2">
@@ -204,6 +254,11 @@ const user = Astro.locals.user ?? { name: "", email: "" };
     const timerDisplay = document.getElementById('timer');
 
     const managerSelect = document.getElementById('manager-select');
+    const managerSearchInput = document.getElementById('manager-search-input');
+    const managerSearchDropdown = document.getElementById('manager-search-dropdown');
+    const managerSearchResults = document.getElementById('manager-search-results');
+    const managerSearchEmpty = document.getElementById('manager-search-empty');
+    const managerSearchBox = document.getElementById('manager-searchbox');
     const engagementSelect = document.getElementById('engagement-select');
     const taskSelect = document.getElementById('task-select');
     const deliverableSelect = document.getElementById('deliverable-select');
@@ -232,6 +287,195 @@ const user = Astro.locals.user ?? { name: "", email: "" };
     }, {});
     const availabilityTargets = [startSection, startCard, resumeCard].filter(Boolean);
 
+    function formatManagerLabel(entry) {
+      if (!entry) {
+        return '';
+      }
+      const name = entry.manager?.name ?? '';
+      const email = entry.manager?.email ?? '';
+      if (name && email) {
+        return `${name} (${email})`;
+      }
+      return name || email;
+    }
+
+    function filterManagers(query) {
+      if (!query) {
+        return managerData;
+      }
+      const normalizedQuery = query.trim().toLowerCase();
+      if (!normalizedQuery) {
+        return managerData;
+      }
+      return managerData.filter((item) => {
+        const name = item.manager?.name?.toLowerCase() ?? '';
+        const email = item.manager?.email?.toLowerCase() ?? '';
+        return name.includes(normalizedQuery) || email.includes(normalizedQuery);
+      });
+    }
+
+    function syncManagerSelectionUI() {
+      if (!managerSearchResults) {
+        return;
+      }
+      const optionElements = managerSearchResults.querySelectorAll('[data-manager-option]');
+      optionElements.forEach((optionElement) => {
+        const rawValue = optionElement.dataset.value ?? '';
+        const optionId = Number.parseInt(rawValue, 10);
+        const isSelected = Number.isFinite(optionId) && optionId === managerSelectedId;
+        optionElement.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        const checkIcon = optionElement.querySelector('[data-manager-option-check]');
+        if (checkIcon) {
+          checkIcon.classList.toggle('hidden', !isSelected);
+        }
+      });
+    }
+
+    function updateManagerActiveOption(nextIndex) {
+      if (!managerSearchResults) {
+        managerActiveIndex = -1;
+        return;
+      }
+      const optionElements = managerSearchResults.querySelectorAll('[data-manager-option]');
+      if (!optionElements.length || nextIndex < 0) {
+        optionElements.forEach((element) => element.classList.remove('bg-muted'));
+        managerActiveIndex = -1;
+        if (managerSearchInput) {
+          managerSearchInput.removeAttribute('aria-activedescendant');
+        }
+        return;
+      }
+      const clampedIndex = Math.max(0, Math.min(nextIndex, optionElements.length - 1));
+      managerActiveIndex = clampedIndex;
+      optionElements.forEach((element, index) => {
+        element.classList.toggle('bg-muted', index === clampedIndex);
+      });
+      const activeOption = optionElements[clampedIndex];
+      if (activeOption && managerSearchInput) {
+        managerSearchInput.setAttribute('aria-activedescendant', activeOption.id);
+        activeOption.scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    function isManagerDropdownOpen() {
+      return Boolean(managerSearchDropdown) && !managerSearchDropdown.classList.contains('hidden');
+    }
+
+    function openManagerDropdown() {
+      if (!managerSearchDropdown || !managerSearchInput || managerSearchInput.disabled) {
+        return;
+      }
+      managerSearchDropdown.classList.remove('hidden');
+      managerSearchDropdown.style.display = 'block';
+      managerSearchInput.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeManagerDropdown() {
+      if (!managerSearchDropdown || !managerSearchInput) {
+        return;
+      }
+      managerSearchDropdown.classList.add('hidden');
+      managerSearchDropdown.style.display = 'none';
+      managerSearchInput.setAttribute('aria-expanded', 'false');
+      updateManagerActiveOption(-1);
+    }
+
+    function setManagerSelection(entry, emitChange = true) {
+      const previousValue = managerSelect ? managerSelect.value : '';
+      managerSelectedId = entry ? entry.manager.id : null;
+
+      if (managerSearchInput) {
+        if (entry) {
+          managerSearchInput.value = formatManagerLabel(entry);
+        } else if (!managerSearchInput.matches(':focus')) {
+          managerSearchInput.value = '';
+        }
+      }
+
+      if (managerSelect) {
+        managerSelect.value = entry ? String(entry.manager.id) : '';
+      }
+
+      syncManagerSelectionUI();
+
+      if (emitChange && managerSelect && previousValue !== managerSelect.value) {
+        managerSelect.dispatchEvent(new Event('change'));
+      }
+    }
+
+    function renderManagerResults(entries, query = '') {
+      if (!managerSearchResults || !managerSearchEmpty) {
+        managerFilteredEntries = entries;
+        managerActiveIndex = -1;
+        return;
+      }
+      managerSearchResults.innerHTML = '';
+      managerFilteredEntries = entries;
+      managerActiveIndex = -1;
+
+      if (!entries.length) {
+        managerSearchEmpty.classList.remove('hidden');
+        managerSearchEmpty.textContent = query ? 'Sem resultados' : 'Sem managers disponiveis';
+        return;
+      }
+
+      managerSearchEmpty.classList.add('hidden');
+      entries.forEach((entry, index) => {
+        const optionButton = document.createElement('button');
+        optionButton.type = 'button';
+        optionButton.id = `manager-option-${entry.manager.id}`;
+        optionButton.dataset.managerOption = 'true';
+        optionButton.dataset.value = String(entry.manager.id);
+        optionButton.dataset.index = String(index);
+        optionButton.setAttribute('role', 'option');
+        optionButton.className = 'flex w-full items-center justify-between gap-3 rounded-md px-4 py-2 text-left text-sm text-foreground transition-colors hover:bg-muted focus:bg-muted focus:outline-none';
+
+        const labelWrapper = document.createElement('div');
+        labelWrapper.className = 'flex flex-col';
+
+        const nameElement = document.createElement('span');
+        nameElement.className = 'font-medium';
+        nameElement.textContent = entry.manager.name ?? '';
+        labelWrapper.appendChild(nameElement);
+
+        if (entry.manager.email) {
+          const emailElement = document.createElement('span');
+          emailElement.className = 'text-xs text-muted-foreground';
+          emailElement.textContent = entry.manager.email;
+          labelWrapper.appendChild(emailElement);
+        }
+
+        optionButton.appendChild(labelWrapper);
+
+        const checkIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        checkIcon.setAttribute('viewBox', '0 0 24 24');
+        checkIcon.setAttribute('width', '16');
+        checkIcon.setAttribute('height', '16');
+        checkIcon.classList.add('size-3.5', 'shrink-0', 'text-primary', 'hidden');
+        checkIcon.setAttribute('data-manager-option-check', 'true');
+
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        polyline.setAttribute('points', '20 6 9 17 4 12');
+        polyline.setAttribute('fill', 'none');
+        polyline.setAttribute('stroke', 'currentColor');
+        polyline.setAttribute('stroke-width', '2');
+        polyline.setAttribute('stroke-linecap', 'round');
+        polyline.setAttribute('stroke-linejoin', 'round');
+        checkIcon.appendChild(polyline);
+
+        optionButton.appendChild(checkIcon);
+
+        optionButton.addEventListener('pointerdown', (event) => {
+          event.preventDefault();
+          setManagerSelection(entry);
+          closeManagerDropdown();
+        });
+
+        managerSearchResults.appendChild(optionButton);
+      });
+      syncManagerSelectionUI();
+    }
+
     const progressFields = {
       user: document.getElementById('progress-user'),
       manager: document.getElementById('progress-manager'),
@@ -243,6 +487,9 @@ const user = Astro.locals.user ?? { name: "", email: "" };
     };
 
     let managerData = [];
+    let managerFilteredEntries = [];
+    let managerActiveIndex = -1;
+    let managerSelectedId = null;
     let activeActivityId = null;
     let activityStartTimestamp = null;
     let timerInterval = null;
@@ -480,20 +727,55 @@ const user = Astro.locals.user ?? { name: "", email: "" };
     setActivityState(false);
 
     const populateManagers = () => {
+      closeManagerDropdown();
+
+      if (!managerSearchInput) {
+        return;
+      }
+
+      const previousRawValue = managerSelect ? managerSelect.value : '';
+      const previousId = Number.parseInt(previousRawValue, 10);
+      const hadPreviousSelection = Number.isFinite(previousId);
+
       if (!managerData.length) {
-        resetSelect(managerSelect, 'Sem managers dispon�veis');
-        managerSelect.disabled = true;
+        managerSearchInput.value = '';
+        managerSearchInput.placeholder = 'Sem managers disponiveis';
+        managerSearchInput.disabled = true;
+
+        if (managerSearchResults) {
+          managerSearchResults.innerHTML = '';
+        }
+        if (managerSearchEmpty) {
+          managerSearchEmpty.classList.remove('hidden');
+          managerSearchEmpty.textContent = 'Sem managers disponiveis';
+        }
+
+        setManagerSelection(null, true);
         resetPeriodicitySelect('Sem deliverables configurados');
         return;
       }
-      resetSelect(managerSelect, 'Seleciona o manager');
-      managerData.forEach((entry) => {
-        const option = document.createElement('option');
-        option.value = String(entry.manager.id);
-        option.textContent = `${entry.manager.name} (${entry.manager.email})`;
-        managerSelect.appendChild(option);
-      });
-      managerSelect.disabled = false;
+
+      managerSearchInput.disabled = false;
+      managerSearchInput.placeholder = 'Seleciona o manager';
+
+      renderManagerResults(managerData);
+
+      if (hadPreviousSelection) {
+        const existingEntry = managerData.find((item) => item.manager.id === previousId) ?? null;
+        if (existingEntry) {
+          managerSelectedId = existingEntry.manager.id;
+          managerSearchInput.value = formatManagerLabel(existingEntry);
+          syncManagerSelectionUI();
+        } else {
+          setManagerSelection(null, true);
+        }
+      } else {
+        managerSelectedId = null;
+        if (!managerSearchInput.matches(':focus')) {
+          managerSearchInput.value = '';
+        }
+        syncManagerSelectionUI();
+      }
     };
 
     const populateEngagements = (engagements) => {
@@ -532,6 +814,17 @@ const user = Astro.locals.user ?? { name: "", email: "" };
     };
 
     managerSelect.addEventListener('change', () => {
+      closeManagerDropdown();
+
+      const managerId = Number.parseInt(managerSelect.value, 10);
+      managerSelectedId = Number.isFinite(managerId) ? managerId : null;
+
+      if (!Number.isFinite(managerId) && managerSearchInput && !managerSearchInput.matches(':focus')) {
+        managerSearchInput.value = '';
+      }
+
+      syncManagerSelectionUI();
+
       resetSelect(engagementSelect, 'Seleciona o engagement');
       resetSelect(taskSelect, 'Seleciona o engagement primeiro');
       resetSelect(deliverableSelect, 'Seleciona o engagement primeiro');
@@ -540,7 +833,6 @@ const user = Astro.locals.user ?? { name: "", email: "" };
       taskSelect.disabled = true;
       deliverableSelect.disabled = true;
 
-      const managerId = Number.parseInt(managerSelect.value, 10);
       if (!Number.isFinite(managerId)) {
         return;
       }
@@ -548,8 +840,102 @@ const user = Astro.locals.user ?? { name: "", email: "" };
       if (!entry) {
         return;
       }
+      if (managerSearchInput && !managerSearchInput.matches(':focus')) {
+        managerSearchInput.value = formatManagerLabel(entry);
+      }
       populateEngagements(entry.engagements);
     });
+
+    if (managerSearchInput) {
+      managerSearchInput.addEventListener('focus', () => {
+        if (managerSearchInput.disabled) {
+          return;
+        }
+        const query = managerSearchInput.value;
+        const filtered = filterManagers(query);
+        renderManagerResults(filtered, query);
+        if (filtered.length || query.trim()) {
+          openManagerDropdown();
+        } else if (managerData.length) {
+          openManagerDropdown();
+        }
+      });
+
+      managerSearchInput.addEventListener('input', () => {
+        if (managerSearchInput.disabled) {
+          return;
+        }
+        const query = managerSearchInput.value;
+        if (managerSelectedId !== null) {
+          setManagerSelection(null, true);
+        }
+        const filtered = filterManagers(query);
+        renderManagerResults(filtered, query);
+        openManagerDropdown();
+      });
+
+      managerSearchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowDown') {
+          if (!isManagerDropdownOpen()) {
+            const filtered = filterManagers(managerSearchInput.value);
+            renderManagerResults(filtered, managerSearchInput.value);
+            if (filtered.length || managerData.length) {
+              openManagerDropdown();
+            }
+          }
+          if (managerFilteredEntries.length) {
+            event.preventDefault();
+            const nextIndex = managerActiveIndex < 0
+              ? 0
+              : Math.min(managerActiveIndex + 1, managerFilteredEntries.length - 1);
+            updateManagerActiveOption(nextIndex);
+          }
+        } else if (event.key === 'ArrowUp') {
+          if (!isManagerDropdownOpen()) {
+            const filtered = filterManagers(managerSearchInput.value);
+            renderManagerResults(filtered, managerSearchInput.value);
+            if (filtered.length || managerData.length) {
+              openManagerDropdown();
+            }
+          }
+          if (managerFilteredEntries.length) {
+            event.preventDefault();
+            const nextIndex = managerActiveIndex <= 0
+              ? managerFilteredEntries.length - 1
+              : managerActiveIndex - 1;
+            updateManagerActiveOption(nextIndex);
+          }
+        } else if (event.key === 'Enter') {
+          if (isManagerDropdownOpen() && managerActiveIndex >= 0 && managerFilteredEntries[managerActiveIndex]) {
+            event.preventDefault();
+            const entry = managerFilteredEntries[managerActiveIndex];
+            setManagerSelection(entry);
+            closeManagerDropdown();
+          }
+        } else if (event.key === 'Escape') {
+          if (isManagerDropdownOpen()) {
+            event.preventDefault();
+            closeManagerDropdown();
+          }
+        }
+      });
+
+      managerSearchInput.addEventListener('blur', () => {
+        setTimeout(() => closeManagerDropdown(), 120);
+      });
+    }
+
+    if (managerSearchBox) {
+      document.addEventListener('pointerdown', (event) => {
+        if (!isManagerDropdownOpen()) {
+          return;
+        }
+        if (event.target instanceof Node && managerSearchBox.contains(event.target)) {
+          return;
+        }
+        closeManagerDropdown();
+      });
+    }
 
     engagementSelect.addEventListener('change', () => {
       resetSelect(taskSelect, 'Seleciona a tarefa');
