@@ -1181,7 +1181,7 @@ export class EngagementService {
 
         if (!code || !name) {
 
-          result.skipped.push({ input: raw, reason: "Cdigo e nome so obrigatrios" });
+          result.skipped.push({ input: raw, reason: "Código e nome so obrigatrios" });
 
           continue;
 

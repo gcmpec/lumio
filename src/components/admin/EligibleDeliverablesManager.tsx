@@ -1286,7 +1286,7 @@ const EligibleDeliverablesManager = () => {
 
 
 
-          <h3 className="text-lg font-semibold">Deliverables elegveis</h3>
+          <h3 className="text-lg font-semibold">Deliverables elegíveis</h3>
 
 
 
@@ -1314,7 +1314,7 @@ const EligibleDeliverablesManager = () => {
 
 
 
-          <p className="text-sm text-muted-foreground">Ainda no existem deliverables elegveis configurados.</p>
+          <p className="text-sm text-muted-foreground">Ainda no existem deliverables elegíveis configurados.</p>
 
 
 

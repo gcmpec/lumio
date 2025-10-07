@@ -1832,7 +1832,7 @@ const EligibleEngagementsManager = () => {
 
 
 
-            <Label htmlFor="eligible-engagement-code">Cdigo</Label>
+            <Label htmlFor="eligible-engagement-code">Código</Label>
 
 
 
@@ -2259,7 +2259,7 @@ const EligibleEngagementsManager = () => {
 
 
 
-          <h3 className="text-lg font-semibold">Engagements elegveis</h3>
+          <h3 className="text-lg font-semibold">Engagements elegíveis</h3>
 
 
 
@@ -2322,7 +2322,7 @@ const EligibleEngagementsManager = () => {
 
 
 
-          <p className="text-sm text-muted-foreground">Ainda no existem engagements elegveis configurados.</p>
+          <p className="text-sm text-muted-foreground">Ainda no existem engagements elegíveis configurados.</p>
 
 
 

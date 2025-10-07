@@ -1298,7 +1298,7 @@ const EligibleTasksManager = () => {
 
 
 
-          <h3 className="text-lg font-semibold">Tarefas elegveis</h3>
+          <h3 className="text-lg font-semibold">Tarefas elegíveis</h3>
 
 
 
@@ -1326,7 +1326,7 @@ const EligibleTasksManager = () => {
 
 
 
-          <p className="text-sm text-muted-foreground">Ainda no existem tarefas elegveis configuradas.</p>
+          <p className="text-sm text-muted-foreground">Ainda no existem tarefas elegíveis configuradas.</p>
 
 
 
