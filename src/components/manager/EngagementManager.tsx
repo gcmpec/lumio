@@ -275,7 +275,7 @@ const EngagementManager = () => {
 
     const payload = preparePayload();
     if (!payload.engagement_code || !payload.engagement_name) {
-      showMessage("Indica o cdigo e o nome do engagement", "error");
+      showMessage("Seleciona um engagement antes de guardar", "error");
       return;
     }
 
@@ -362,7 +362,7 @@ const EngagementManager = () => {
           <div>
             <h2 className="text-lg font-semibold">{editingId ? "Editar engagement" : "Caracterizar novo engagement"}</h2>
             <p className="text-sm text-muted-foreground">
-              Define código, nome, tarefas e deliverables disponveis para este engagement.
+              Seleciona o engagement que queres configurar e ativa as tarefas e deliverables apropriados.
             </p>
           </div>
           {editingId && (
@@ -378,35 +378,6 @@ const EngagementManager = () => {
         </div>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="engagement-code">Código do engagement</Label>
-              <Input
-                id="engagement-code"
-                name="engagement_code"
-                value={form.engagement_code}
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, engagement_code: event.target.value, eligible_engagement_id: null }))
-                }
-                placeholder="Cdigo interno"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="engagement-name">Nome do engagement</Label>
-              <Input
-                id="engagement-name"
-                name="engagement_name"
-                value={form.engagement_name}
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, engagement_name: event.target.value, eligible_engagement_id: null }))
-                }
-                placeholder="Nome visvel para a equipa"
-                required
-              />
-            </div>
-          </div>
-
           <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
             <div className="space-y-2">
               <Label htmlFor="eligible-engagement">Seleciona um Engagement</Label>
@@ -419,11 +390,16 @@ const EngagementManager = () => {
                   if (selectedId) {
                     handleEligibleEngagementSelect(selectedId);
                   } else {
-                    setForm((prev) => ({ ...prev, eligible_engagement_id: null }));
+                    setForm((prev) => ({
+                      ...prev,
+                      engagement_code: "",
+                      engagement_name: "",
+                      eligible_engagement_id: null,
+                    }));
                   }
                 }}
               >
-                <option value="">Seleciona um engagement sugerido</option>
+                <option value="">Seleciona um engagement</option>
                 {engagementOptions.map((option) => (
                   <option key={option.id} value={option.id}>
                     {option.engagement_code}  {option.engagement_name}
